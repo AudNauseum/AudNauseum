@@ -3,42 +3,43 @@ from enum import Enum, auto
 '''Loop is the primary object that gets passed from state to state'''
 class Loop:
     def __init__(self):
-        _trackList = None   #List of Tracks in the loop
-        _met = Metronome()
-        _fx = FxSettings()
+        trackList = None   #List of Tracks in the loop
+        met = Metronome()
+        fx = FxSettings()
     
 
 '''Loops manage Tracks. A track is an audio stream and a set of 
     parameters that allow different tracks to sync together'''
 class Track:
     def __init__(self):
-        _fileId = None          #File Identifier (Name maybe?)
-        _sampleRate = 44100
-        _bitDepth = 16
-        _bpm = None
-        _length_in_beats = None
-        _isStereo = False
+        fileId = None          #File Identifier (Name maybe?)
+        sampleRate = 44100
+        bitDepth = 16
+        bpm = None
+        length_in_beats = None
+        isStereo = False
     
 
 '''Metronome is an attribute of a Loop that indicates when 
     Metronome Clicks should play'''
 class Metronome:
     def __init__(self):
-        _bpm = 0                #Beats per Minute
-        _timeSigTop = 4         #Beats per Measure
-        _metVolume = 0.5
-        _countIn = False            #Count in one measure before recording starts
-        _isOn = False
+        bpm = 0                #Beats per Minute
+        timeSigTop = 4         #Beats per Measure
+        metVolume = 0.5
+        countIn = False        #Count in one measure before recording starts
+        isOn = False
     
 
-'''FxSettings are an attribute of both Tracks and Loops.'''
+'''FxSettings are an attribute of both Tracks and Loops. 
+    Only "_slip" doesn't make sense when applying effects to loops'''
 class FxSettings:
     def __init__(self):
-        _volume = 0.5
-        _pan = 0.5
-        _isReversed = False
-        _pitchAdjust = 0
-        _slip = 0
+        volume = 0.5
+        pan = 0.5
+        isReversed = False
+        pitchAdjust = 0
+        slip = 0
     
         
 '''An Enumerated List of available states of the Audio Looper'''
