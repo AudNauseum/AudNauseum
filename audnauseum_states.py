@@ -3,13 +3,15 @@ from enum import Enum, auto
 '''Loop is the primary object that gets passed from state to state'''
 class Loop:
     def __init__(self):
-        _trackList = None
+        _trackList = None   #List of Tracks in the loop
         _met = Metronome()
         _fx = FxSettings()
     pass
 
-'''Loops manage Tracks. A track is an audio stream and a set of parameters that allow different tracks to sync together'''
+'''Loops manage Tracks. A track is an audio stream and a set of 
+    parameters that allow different tracks to sync together'''
 class Track:
+    _fileId = None          #File Identifier 
     _sampleRate = 44100
     _bitDepth = 16
     _bpm = None
@@ -17,11 +19,11 @@ class Track:
     _isStereo = False
     pass
 
-'''Metronome is an attribute of a Loop that indicates when Metronome Clicks should play'''
+'''Metronome is an attribute of a Loop that indicates when 
+    Metronome Clicks should play'''
 class Metronome:
-    _bpm = 0
-    _timeSigTop = 4
-    _timeSigBottom = 4
+    _bpm = 0                #Beats per Minute
+    _timeSigTop = 4         #Beats per Measure
     _isOn = False
     pass
 
@@ -34,7 +36,7 @@ class FxSettings:
     _slip = 0
     pass
         
-
+'''An Enumerated List of available states of the Audio Looper'''
 class State(Enum):
     IDLE = auto()
     LOADING = auto()
@@ -44,8 +46,9 @@ class State(Enum):
     PLAYING = auto()
     RECORDING = auto()
     PLAYING_AND_RECORDING = auto()
-    EXIT = auto()
+    EXIT = auto()               #Added for Testing
 
+'''An enumerated list of the available triggers of the Audio Looper'''
 class Trigger(Enum):
     PLAY = auto()
     REC = auto()
