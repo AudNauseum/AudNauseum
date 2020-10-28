@@ -49,26 +49,40 @@ class Metronome:
     def isOn(self, isOn):
         self._isOn = isOn
 
-    def _aTimer(self, cursor):
-        ##to get the timer to pick up wherever you are in the audio playing, 
+    def _aTimer(self, timeAtCursorMs, slip):
+        ##to get the timer to pick up wherever you are in the audio playback, 
         # the cursor needs to get converted from a Numpy array index to an 
-        # elapsed time since the beginning of the loop. Since we will have 
-        # the option to slip an audio file left and right, we cannot rely 
-        # on the timing from the track. I haven't yet figured out how to do this. 
-        currentBeat = 0
+        # elapsed time since the beginning of the loop. We can use the beginning 
+        # of the audio file as long as we adjust it by the "slip" value in the track
+        # and can reasonably assume that all recordings start at the beginning of a 
+        # a loop or any departure is reliably captured by the "slip".
+        firstIter = True
+        timeOffset = ((timeAtCursorMs / 1000) + slip)
+        # print(f"timeOffset: {timeOffset}")
+        if timeOffset == 0:
+            nextBeat = 0
+        else:
+            # print(f"seconds per beat {60/self.bpm}")
+            nextBeat = (int(timeOffset / (60/self.bpm)) + 1) % self.beats 
+            # print(f"nextBeat: {nextBeat}")
+            # print(f"Time to next beat: {(60/self.bpm) - timeOffset % (60/self.bpm)}")
         while self.isOn:
-            sleep(60/self.bpm)
-            if(currentBeat == 0):
+            if firstIter:
+                sleep(60/self.bpm - timeOffset % (60/self.bpm) )  
+                firstIter = False
+            else:
+                sleep((60/self.bpm))
+            if(nextBeat == 0):
                 print("\nDING ", end="")
             else:
                 print("ding ", end="")
-            currentBeat = (currentBeat + 1) % self.beats
+            nextBeat = (nextBeat + 1) % self.beats
 
-    def start(self):
-        Thread(target=self._aTimer).start()
+    def start(self, timeAtCursorMs=0, slip=0):
+        Thread(target=self._aTimer, args=(timeAtCursorMs, slip)).start()
 
 if __name__ == "__main__":
-    myMetronome = Metronome(110, 3, isOn=True)
-    myMetronome.start()
+    myMetronome = Metronome(90, 3, isOn=True)
+    myMetronome.start(900, -25)
     sleep(30)
     myMetronome.isOn = False
