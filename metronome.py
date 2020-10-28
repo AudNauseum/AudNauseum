@@ -1,5 +1,9 @@
 from threading import Thread
 from time import sleep
+import sounddevice as sd
+import soundfile as sf
+
+sd.default.samplerate = 44100
 
 class Metronome:
     def __init__(self, bpm, beats, volume = 0.5, countIn = False, isOn = False):
@@ -56,6 +60,12 @@ class Metronome:
         # of the audio file as long as we adjust it by the "slip" value in the track
         # and can reasonably assume that all recordings start at the beginning of a 
         # a loop or any departure is reliably captured by the "slip".
+        filename1 = './resources/metronome/downBeat.wav'
+        filename2 = './resources/metronome/beat.wav'
+        # Extract data and sampling rate from file
+        downBeat, fs = sf.read(filename1, dtype='float32') 
+        beat, fs = sf.read(filename2, dtype='float32') 
+
         firstIter = True
         timeOffset = ((timeAtCursorMs / 1000) + slip)
         # print(f"timeOffset: {timeOffset}")
@@ -73,16 +83,16 @@ class Metronome:
             else:
                 sleep((60/self.bpm))
             if(nextBeat == 0):
-                print("\nDING ", end="")
+                sd.play(downBeat, fs)
             else:
-                print("ding ", end="")
+                sd.play(beat, fs)
             nextBeat = (nextBeat + 1) % self.beats
 
     def start(self, timeAtCursorMs=0, slip=0):
         Thread(target=self._aTimer, args=(timeAtCursorMs, slip)).start()
 
 if __name__ == "__main__":
-    myMetronome = Metronome(90, 3, isOn=True)
-    myMetronome.start(900, -25)
+    myMetronome = Metronome(120, 4, isOn=True)
+    myMetronome.start()
     sleep(30)
     myMetronome.isOn = False
