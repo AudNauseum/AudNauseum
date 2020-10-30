@@ -1,7 +1,14 @@
+import os
+import sys
+
 from bullet import Bullet
 import soundfile as sf
 import sounddevice as sd
-import os
+
+
+def introduction():
+    print("Welcome to AudNauseum!")
+    print("Press Ctrl-D at any time to exit")
 
 
 def menu(current_state: str = 'idle') -> str:
@@ -25,6 +32,7 @@ def play_menu() -> str:
 
 
 if __name__ == '__main__':
+    introduction()
     choice = menu()
     if choice.lower() == 'play':
         recording = play_menu()
@@ -35,4 +43,4 @@ if __name__ == '__main__':
                 sd.play(data, fs)
                 status = sd.wait()
             except KeyboardInterrupt:
-                exit()
+                sys.exit()
