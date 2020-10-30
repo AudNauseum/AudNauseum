@@ -1,7 +1,8 @@
 from metronome import Metronome
 
-'''Loop is the primary object that gets passed from state to state'''
+
 class Loop:
+    '''Loop is the primary object that gets passed from state to state'''
     def __init__(self):
         self.trackList = []   #List of Tracks in the loop
         self.met = Metronome(100, 4)
@@ -13,9 +14,10 @@ class Loop:
     def removeTrack(self, track):
         self.trackList.remove(track) 
     
-'''Loops manage Tracks. A track is an audio stream and a set of 
-    parameters that allow different tracks to sync together'''
+
 class Track:
+    '''Loops manage Tracks. A track is an audio stream and a set of 
+    parameters that allow different tracks to sync together'''
     def __init__(self):
         self._filename = None          #File Identifier 
         self._sampleRate = 44100
@@ -50,9 +52,10 @@ class Track:
         self._length_in_beats = beats
     
 
-'''FxSettings are an attribute of both Tracks and Loops. 
-    Only "_slip" doesn't make sense when applying effects to loops'''
+
 class FxSettings:
+    '''FxSettings are an attribute of both Tracks and Loops. 
+    Only "_slip" doesn't make sense when applying effects to loops'''
     def __init__(self, vol=0.5, pan=0.5, isReversed=False, pitchAdjust=0, slip=0):
         self._volume = vol
         self._pan = pan
