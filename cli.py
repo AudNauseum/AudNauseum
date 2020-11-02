@@ -15,8 +15,16 @@ assert numpy
 
 
 def introduction():
-    print("Welcome to AudNauseum!")
-    print("Press Ctrl-D at any time to exit")
+    print('\n   _____            .__________')                                            
+    print('  /  _  \\  __ __  __| _/\\      \\ _____   __ __  ______ ____  __ __  _____')  
+    print(' /  /_\  \|  |  \/ __ | /   |   \\\\__  \ |  |  \/  ___// __ \|  |  \/     \\')
+    print('/    |    \\  |  / /_/ |/    |    \\/ __ \\|  |  /\\___ \\ \\ ___/|  |  /  Y Y  \\')
+    print('\____|__  /____/\\____ |\\____|__  (____  /____//____  >\\___  >____/|__|_|  /')
+    print('        \\/           \\/        \\/     \\/           \\/     \\/            \\/') 
+
+
+    print("\nWelcome to AudNauseum!")
+    print("\nPress Ctrl-C at any time during playback to stop a track\n")
 
 
 def menu(current_state: str = 'idle') -> str:
@@ -62,7 +70,8 @@ if __name__ == '__main__':
                     sd.play(data, fs)
                     status = sd.wait()
                 except KeyboardInterrupt:
-                    sys.exit()
+                    # sys.exit()
+                    continue
 
         if choice.lower() == 'record':
             
@@ -71,4 +80,4 @@ if __name__ == '__main__':
         if choice.lower() == 'exit':
             loop = False
             
-        
+    print('\nGoodBye!\n')
