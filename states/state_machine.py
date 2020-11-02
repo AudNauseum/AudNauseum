@@ -3,6 +3,9 @@ from .state import State
 
 
 class StateMachine:
+    """Central class which controls the transition
+    between states. Contains a reference to the
+    current Loop to pass to the states."""
     loop: Loop
 
     def __init__(self, initial_state: State):
