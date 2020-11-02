@@ -12,3 +12,6 @@ _deps
 
 # MacOS
 .DS_Store
+
+# Virtual Environment
+.venv
