@@ -31,6 +31,7 @@ _deps
 # Virtual Environment
 .venv
 .venv/
+venv/
 
 # Cache files
 __pycache__
