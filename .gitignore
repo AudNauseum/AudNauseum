@@ -15,3 +15,6 @@ _deps
 
 # Virtual Environment
 .venv
+
+# Cache files
+__pycache__
