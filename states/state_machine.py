@@ -1,4 +1,4 @@
-from models.loop import Loop
+from data_models.loop import Loop
 from .state import State
 
 
