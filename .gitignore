@@ -35,3 +35,6 @@ venv/
 
 # Cache files
 __pycache__
+
+# User Generated Recordings
+resources/recordings/
