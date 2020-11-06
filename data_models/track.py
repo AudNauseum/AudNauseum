@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from fx_settings import FxSettings
 
 @dataclass
 class Track:
@@ -9,6 +9,4 @@ class Track:
     bpm: int
     length_in_beats: int
     length_in_ms: int
-    bit_depth: int = 16
-    sample_rate: int = 44100
-    is_stereo: bool = False
+    fx: FxSettings

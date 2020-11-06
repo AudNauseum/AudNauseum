@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class FxSettings:
     '''FxSettings are an attribute of both Tracks and Loops.
