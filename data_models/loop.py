@@ -1,7 +1,6 @@
 from metronome.metronome import Metronome
-
-from .track import Track
-from .fx_settings import FxSettings
+from data_models.track import Track
+from data_models.fx_settings import FxSettings
 
 
 class Loop:
@@ -17,3 +16,10 @@ class Loop:
 
     def removeTrack(self, track: Track):
         self.tracks.remove(track)
+    
+    def solipsize(self):
+        print(f"I am a Loop object")
+    
+    @property
+    def track_count(self):
+        return len(self.tracks)
