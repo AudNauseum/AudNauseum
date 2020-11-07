@@ -7,12 +7,15 @@ sd.default.samplerate = 44100
 
 
 class Metronome:
-    def __init__(self, bpm, beats, volume=0.5, countIn=False, isOn=False):
+    def __init__(self, bpm, beats, volume=0.5, count_in=False, is_on=False):
         self._bpm = bpm
         self._beats = beats
         self._volume = volume
-        self._countIn = countIn
-        self._isOn = isOn
+        self._count_in = count_in
+        self._is_on = is_on
+    
+    def __str__(self):
+        return f'BPM: {self.bpm}\nBEATS: {self.beats}\nVOL: {self.volume}\nCOUNT_IN: {self.count_in}\nIS_ON: {self.is_on}'
 
     @property
     def bpm(self):
@@ -39,20 +42,20 @@ class Metronome:
         self._volume = vol
 
     @property
-    def countIn(self):
-        return self._countIn
+    def count_in(self):
+        return self._count_in
 
-    @countIn.setter
-    def countIn(self, countIn):
-        self._countIn = countIn
+    @count_in.setter
+    def count_in(self, count_in):
+        self._count_in = count_in
 
     @property
-    def isOn(self):
-        return self._isOn
+    def is_on(self):
+        return self._is_on
 
-    @isOn.setter
-    def isOn(self, isOn):
-        self._isOn = isOn
+    @is_on.setter
+    def is_on(self, is_on):
+        self._is_on = is_on
 
     def _aTimer(self, timeAtCursorMs, slip):
         # to get the timer to pick up wherever you are in the audio playback,
@@ -79,7 +82,7 @@ class Metronome:
             # print(f"nextBeat: {nextBeat}")
             # time_to_next_beat = (60/self.bpm) - timeOffset % (60/self.bpm)
             # print(f"Time to next beat: {time_to_next_beat}")
-        while self.isOn:
+        while self.is_on:
             if firstIter:
                 sleep(60/self.bpm - timeOffset % (60/self.bpm))
                 firstIter = False
@@ -96,7 +99,7 @@ class Metronome:
 
 
 if __name__ == "__main__":
-    myMetronome = Metronome(120, 4, isOn=True)
+    myMetronome = Metronome(120, 4, is_on=True)
     myMetronome.start()
     sleep(30)
-    myMetronome.isOn = False
+    myMetronome.is_on = False
