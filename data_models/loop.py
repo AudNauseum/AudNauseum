@@ -1,16 +1,20 @@
+import json
 import ntpath
 import sys
+sys.path.append('data_models')
 sys.path.append('metronome')
 from metronome import Metronome
 
 from track import Track
 from fx_settings import FxSettings
+from complex_encoder import ComplexEncoder
 
 
 class Loop:
     '''Loop is the primary object that gets passed from state to state'''
 
     def __init__(self):
+        self.file_name = None
         self._tracks: list[Track] = []  # List of Tracks in the loop
         self._met = Metronome(100, 4)   # Initializes a metronome
         self._fx = FxSettings()         # Initializes Volume, Pan, Pitch, Reverse, and Slip settings for a loop
@@ -88,19 +92,47 @@ class Loop:
     def fx(self):
         return self._fx
 
+    def reprJSON(self):
+        return dict(tracks = self.tracks, met=self.met, fx = self.fx)
+    
+    def write_json(self):
+        if not(self.file_name):
+            self.file_name = input('Enter File Name: ')
+        with open('./json/loops/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
+            f.write(json.dumps(self, cls=ComplexEncoder))
 if __name__ == "__main__":
+    #TESTS
+    #Create Loop
     l = Loop()
-    t1=Track(f'resources/recordings/Soft_Piano_Music.wav', 100, 30)
-    t2=Track(f'resources/recordings/Soft_Piano_Music.wav', 100, 30)
+    #Create Tracks
+    t1=Track(f'resources/recordings/Soft_Piano_Music.wav')
+    t2=Track(f'resources/recordings/Soft_Piano_Music.wav')
+ 
+    #Contact Loop, get response
     l.solipsize()
+ 
+    #Add tracks to loop
     l.append(t1)
     l.append(t2)
+
+    #print loop details
     print(l)
+
+    #access the loop's metronome and fx
     print(f'{l.met}')
     print(f'{l.fx}')
+
+    #write loop information to ./json/loops
+    l.write_json()
+
+    #remove a track from the loop by file_name
     if l.remove(f'resources/recordings/Soft_Piano_Music.wav'):
         print("I removed a thing.")
+
     print(l)
+
+    #remove a track from the loop by index
     if l.pop(0):
         print("I popped a thing.")
+    
     print(l)

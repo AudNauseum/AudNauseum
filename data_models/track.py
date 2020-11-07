@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import soundfile as sf
+import json, ntpath
 from fx_settings import FxSettings
+from complex_encoder import ComplexEncoder
 
 class Track:
     '''A track represents an audio stream and a set of
@@ -51,6 +53,14 @@ class Track:
     @property
     def fx(self):
         return self._fx
+    
+    def reprJSON(self):
+        return dict(file_name=self.file_name, bpm=self.bpm, beat_length=self.beat_length, ms_length=self.ms_length, fx=self.fx)
+
+    def write_JSON(self):
+        print(json.dumps(self, cls=ComplexEncoder))  
+        with open('./json/tracks/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
+            f.write(json.dumps(self, cls=ComplexEncoder))
 
 
 if __name__ == "__main__":
@@ -72,3 +82,6 @@ if __name__ == "__main__":
     print(f'Changed Volume to {t.fx.volume}')
     t.fx.slip = 2468372
     print(f'Changed slip to {t.fx.slip}')
+    print("JSON DUMP")
+    print(json.dumps(t, cls=ComplexEncoder))
+    t.write_JSON()

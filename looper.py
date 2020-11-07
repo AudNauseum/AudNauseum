@@ -1,5 +1,11 @@
-import os
-from os import path
+import os, ntpath
+import sys
+import argparse
+import tempfile
+import queue
+import json
+
+from bullet import Bullet
 from transitions import Machine
 from data_models.fx_settings import FxSettings
 from data_models.loop import Loop
@@ -19,8 +25,12 @@ class Looper(Machine):
   
   transitions = [
     #idle state transitions
-    { 'trigger': 'add_track', 'source': 'idle', 'dest': 'loaded' },
+    { 'trigger': 'load_loop', 'source': 'idle', 'dest': 'loaded', 'after': 'load_loop' },
+    { 'trigger': 'add_track', 'source': 'idle', 'dest': 'loaded', 'after': 'load_track' },
     { 'trigger': 'record', 'source': 'idle', 'dest': 'recording' },
+    { 'trigger': 'metronome', 'source': 'idle', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'metronome_settings', 'source': 'idle', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'idle', 'dest': 'None' },  ##Not a transition
 
     #loaded state transitions
     { 'trigger': 'record', 'source': 'loaded', 'dest': 'playing_and_recording' },
@@ -29,29 +39,46 @@ class Looper(Machine):
     { 'trigger': 'remove_track', 'source': 'loaded', 'dest': '=', 'after': 'unload_track' },
     { 'trigger': 'record', 'source': 'loaded', 'dest': 'playing_and_recording' },
     { 'trigger': 'play', 'source': 'loaded', 'dest': 'playing' },
-
+    { 'trigger': 'metronome', 'source': 'loaded', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'metronome_settings', 'source': 'loaded', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'loaded', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'track_fx', 'source': 'loaded', 'dest': 'None' },  ##Not a transition
+    
     #recording state transitions
     { 'trigger': 'record', 'source': 'recording', 'dest': 'playing' },
     { 'trigger': 'play', 'source': 'recording', 'dest': 'playing' },
     { 'trigger': 'pause', 'source': 'recording', 'dest': 'paused' },
     { 'trigger': 'stop', 'source': 'recording', 'dest': 'loaded' },
+    { 'trigger': 'metronome', 'source': 'recording', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'recording', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'track_fx', 'source': 'recording', 'dest': 'None' },  ##Not a transition
 
     #playing state transitions
     { 'trigger': 'record', 'source': 'playing', 'dest': 'playing_and_recording' },
     { 'trigger': 'pause', 'source': 'playing', 'dest': 'paused' },
     { 'trigger': 'stop', 'source': 'playing', 'dest': 'loaded' },
+    { 'trigger': 'metronome', 'source': 'playing', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'playing', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'track_fx', 'source': 'playing', 'dest': 'None' },  ##Not a transition
 
     #playing_and_recording state transitions
     { 'trigger': 'record', 'source': 'playing_and_recording', 'dest': 'playing' },
     { 'trigger': 'play', 'source': 'playing_and_recording', 'dest': 'playing' },
     { 'trigger': 'pause', 'source': 'playing_and_recording', 'dest': 'paused' },
     { 'trigger': 'stop', 'source': 'playing_and_recording', 'dest': 'loaded' },
+    { 'trigger': 'metronome', 'source': 'playing_and_recording', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'playing_and_recording', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'track_fx', 'source': 'playing_and_recording', 'dest': 'None' },  ##Not a transition
 
     #paused state transitions
     { 'trigger': 'record', 'source': 'paused', 'dest': 'playing_and_recording' },
     { 'trigger': 'play', 'source': 'paused', 'dest': 'playing' },
     { 'trigger': 'pause', 'source': 'paused', 'dest': 'playing' },
-    { 'trigger': 'stop', 'source': 'paused', 'dest': 'loaded' }   
+    { 'trigger': 'stop', 'source': 'paused', 'dest': 'loaded' }, 
+    { 'trigger': 'metronome', 'source': 'paused', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'metronome_settings', 'source': 'paused', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'global_fx', 'source': 'paused', 'dest': 'None' },  ##Not a transition
+    { 'trigger': 'track_fx', 'source': 'paused', 'dest': 'None' },  ##Not a transition
   ]  
   
   def __init__(self, volume=1, pan=0.5, loop=None):
@@ -64,11 +91,26 @@ class Looper(Machine):
       self.loop = loop
   '''load a Track into the looper.  Appends the track to the track_list, reads Track 
   arguments and generates a numpy array that can be used by sounddevices'''
-  def load_track(self, file_path):
-    #hardcoded True for testing
-    return True
 
-  def unload_track(self, file_path):
+  def select_track(self):
+    """Displays a list of audio files to import"""
+    tracks = list(os.listdir('resources/recordings'))
+    if tracks:
+        cli = Bullet(prompt='Choose a Track:', choices=tracks)
+        track = cli.launch()
+        return track
+
+  def load_track(self):
+    #Select track
+    audio_prefix = 'resources/recordings/'
+    json_prefix = 'resources/json/tracks'
+    track = audio_prefix + self.select_track()
+    settings = json_prefix + ntpath.splitext(ntpath.basename(track)) + '.json'
+    '''search for JSON file with same name. If found, create track, load file, load parameters, 
+    else create track, load file, prompt for total_beats in track and derive parameters'''
+    pass
+
+  def unload_track(self):
     #hardcoded True for testing
     return True
 
@@ -93,13 +135,14 @@ class Looper(Machine):
   '''returns true if the track_list is empty'''
   @property
   def no_tracks(self):
-    #hardcoded True for Testing
-    return True
+    if(self.loop.track_count == 0):
+      return True
+    return False
 
 if __name__ == "__main__":
     l = Looper()
     print(f"Initial State: {l.state}")
-    l.add_track('file_path')
+    l.add_track()
     print(f"Add Track changed state to {l.state}")
     l.record()
     print(f"Record changed state to {l.state}")
@@ -109,5 +152,5 @@ if __name__ == "__main__":
     print(f"Play changed state to {l.state}") 
     l.stop()
     print(f"Stop changed state to {l.state}") 
-    l.remove_track('asdf')
+    l.remove_track()
     print(f"Remove track changed state to {l.state}")
