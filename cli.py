@@ -120,63 +120,63 @@ if __name__ == '__main__':
 
     while loop:
 
-        # choice = menu()
-        # if choice.lower() == 'play':
-        #     recording = play_menu()
-        #     if recording:
-        #         try:
-        #             data, fs = sf.read(
-        #                 f'resources/recordings/{recording}', dtype='float32')
-        #             sd.play(data, fs)
-        #             status = sd.wait()
-        #         except KeyboardInterrupt:
-        #             # sys.exit()
-        #             continue
+        choice = menu()
+        if choice.lower() == 'play':
+            recording = play_menu()
+            if recording:
+                try:
+                    data, fs = sf.read(
+                        f'resources/recordings/{recording}', dtype='float32')
+                    sd.play(data, fs)
+                    status = sd.wait()
+                except KeyboardInterrupt:
+                    # sys.exit()
+                    continue
 
-        # if choice.lower() == 'record':
+        if choice.lower() == 'record':
             
-        #     record_menu()
-        if(m.state == 'idle'):
-            choice = idle_menu()
+            record_menu()
+        # if(m.state == 'idle'):
+        #     choice = idle_menu()
 
-            if choice.lower() == 'add_track':
-                #Find File
-                selection = load_track()
-                #Create Track
-                t = Track(f'resources/recordings/' + selection)
-                #Add Track
-                if(m.loop.append(t)):
-                    #Change States
-                    m.add_track()
+        #     if choice.lower() == 'add_track':
+        #         #Find File
+        #         selection = load_track()
+        #         #Create Track
+        #         t = Track(f'resources/recordings/' + selection)
+        #         #Add Track
+        #         if(m.loop.append(t)):
+        #             #Change States
+        #             m.add_track()
 
-            if choice.lower() ==  'record':
-                pass
+        #     if choice.lower() ==  'record':
+        #         pass
 
-            if choice.lower() == 'metronome':
-                pass
+        #     if choice.lower() == 'metronome':
+        #         pass
 
-            if choice.lower() == 'metronome_settings':
-                pass
+        #     if choice.lower() == 'metronome_settings':
+        #         pass
 
-            if choice.lower() == 'exit':
-                loop = False
+        #     if choice.lower() == 'exit':
+        #         loop = False
 
-        if(m.state == 'loaded'):
-            choice = loaded_menu()
+        # if(m.state == 'loaded'):
+        #     choice = loaded_menu()
 
-            if choice.lower() == 'exit':
-                loop = False 
+        #     if choice.lower() == 'exit':
+        #         loop = False 
     
-        if(m.state == 'recording'):
-            pass
+        # if(m.state == 'recording'):
+        #     pass
 
-        if(m.state == 'playing'):
-            pass
+        # if(m.state == 'playing'):
+        #     pass
 
-        if(m.state == 'playing_and_recording'):
-            pass
+        # if(m.state == 'playing_and_recording'):
+        #     pass
 
-        if(m.state == 'paused'):
-            pass
+        # if(m.state == 'paused'):
+        #     pass
             
     print('\nGoodBye!\n')

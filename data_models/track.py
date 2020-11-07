@@ -57,10 +57,13 @@ class Track:
     def reprJSON(self):
         return dict(file_name=self.file_name, bpm=self.bpm, beat_length=self.beat_length, ms_length=self.ms_length, fx=self.fx)
 
+    ##TODO: rewrite write_JSON to write all loop and track info to a common file.
     def write_JSON(self):
         print(json.dumps(self, cls=ComplexEncoder))  
         with open('./json/tracks/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
             f.write(json.dumps(self, cls=ComplexEncoder))
+    
+    #TODO: write a read_JSON feature to read specified content of a JSON file into a track or loop
 
 
 if __name__ == "__main__":
@@ -83,5 +86,5 @@ if __name__ == "__main__":
     t.fx.slip = 2468372
     print(f'Changed slip to {t.fx.slip}')
     print("JSON DUMP")
-    print(json.dumps(t, cls=ComplexEncoder))
+    print(json.dumps(t, cls=ComplexEncoder, indent=4))
     t.write_JSON()

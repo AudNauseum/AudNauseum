@@ -1,10 +1,11 @@
 import json
 import ntpath
 import sys
+
 sys.path.append('data_models')
 sys.path.append('metronome')
-from metronome import Metronome
 
+from metronome import Metronome
 from track import Track
 from fx_settings import FxSettings
 from complex_encoder import ComplexEncoder
@@ -20,9 +21,7 @@ class Loop:
         self._fx = FxSettings()         # Initializes Volume, Pan, Pitch, Reverse, and Slip settings for a loop
         self.audio_cursor = 0           # Sets the audio cursor to point at the beginning of the loop
     
-    '''When printing a loop object, I have elected to print the file names of the tracks in the loop. 
-    I'm not sure how useful that is, but until I can think of a compelling reason to worry about printing 
-    loops--it seems like a reasonable approach, and is sufficient for testing'''
+    ##NOTE: We can change the behavior of __str__ if you guys want it to be something else
     def __str__(self):
         if(len(self.tracks) == 0):
             return(f'Track List is Empty')
@@ -31,6 +30,7 @@ class Loop:
             output += ntpath.basename(each.file_name) + '\n'
         return(output)
     
+    ##TEST METHOD
     '''Just to test that I can reach a loop object. "I loop therefore I am"'''
     def solipsize(self):
         print(f"I am a Loop object")
@@ -65,6 +65,7 @@ class Loop:
             return True
         except:
             return False
+
     '''Remove a track by file_path. Removes the first instance of a Track with a given file_path'''
     def remove(self, file_path):
         for index, track in enumerate(self.tracks):
@@ -73,10 +74,10 @@ class Loop:
                 return True
         return False
     
+    ##NOTE: If anyone thinks of a good reason to return the object 
+    # instead of tracking success of the operation, we can do that.
     '''Remove a track by index in the tracks list.  Note: Does not return the Track removed from the list. 
-    I chose to return a bool to track success.
-    If anyone thinks of a good reason to return the object instead of tracking success of the operation, 
-    we can do that.'''
+    I chose to return a bool to report success of the operation.'''
     def pop(self, index):
         if(index < len(self.tracks)):
             self.tracks.pop(index)
@@ -94,12 +95,17 @@ class Loop:
 
     def reprJSON(self):
         return dict(tracks = self.tracks, met=self.met, fx = self.fx)
-    
+
+    ##TODO: change write_json implementation so all loops and tracks write their settings to a common JSON file 
     def write_json(self):
         if not(self.file_name):
             self.file_name = input('Enter File Name: ')
         with open('./json/loops/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
             f.write(json.dumps(self, cls=ComplexEncoder))
+
+    ##TODO: implement feature to read from JSON file into objects using a Complex Decoder
+
+
 if __name__ == "__main__":
     #TESTS
     #Create Loop

@@ -1,6 +1,9 @@
 import sys
+
 sys.path.append('..')
-import json
+sys.path.append('data_models')
+
+import json, ntpath
 from dataclasses import dataclass
 from complex_encoder import ComplexEncoder
 
@@ -77,4 +80,4 @@ if __name__ == "__main__":
     print(f'Pitch: {f.pitch_adjust}')
     print(f'Slip: {f.slip}')
     print("JSON DUMP")
-    print(json.dumps(f, cls=ComplexEncoder))
+    print(json.dumps(f, cls=ComplexEncoder, indent=4))

@@ -89,8 +89,6 @@ class Looper(Machine):
       self.loop = Loop()
     else:
       self.loop = loop
-  '''load a Track into the looper.  Appends the track to the track_list, reads Track 
-  arguments and generates a numpy array that can be used by sounddevices'''
 
   def select_track(self):
     """Displays a list of audio files to import"""
@@ -100,39 +98,41 @@ class Looper(Machine):
         track = cli.launch()
         return track
 
+  '''load a Track into the looper.  Appends the track to the track_list, reads Track 
+  arguments and generates a numpy array that can be used by sounddevices'''
   def load_track(self):
-    #Select track
-    audio_prefix = 'resources/recordings/'
-    json_prefix = 'resources/json/tracks'
-    track = audio_prefix + self.select_track()
-    settings = json_prefix + ntpath.splitext(ntpath.basename(track)) + '.json'
-    '''search for JSON file with same name. If found, create track, load file, load parameters, 
-    else create track, load file, prompt for total_beats in track and derive parameters'''
-    pass
+      ##TODO
+      pass
 
   def unload_track(self):
+    #TODO - write code to unload a track from a loop--should call a method from Loop object
     #hardcoded True for testing
     return True
 
   '''Finds the correct point in the numpy arrays of the tracks and plays them.  Should be used in playing and playing_and_recording states'''
   def play_tracks(self, audioCursor):
+    #TODO-DAVE
     pass
 
   '''writes input audio stream to disk and sends stream to whatever we use to accumulate audio samples for output'''
   def record_input(self):
+    #TODO-STEVE
     pass
   
   '''converts an audio array into a track.  Used at the end of recording in recording or playing_and_recording states'''
   def write_recording_to_track(self, numpyArray):
     pass
 
-  '''returns true if loading a track was successful'''
+  '''Used for conditional transitions where a file must successfully be loaded.
+    Returns true if loading a track was successful'''
   @property
   def has_loaded(self):
+    #TODO
     #hardcoded True for testing
     return True
 
-  '''returns true if the track_list is empty'''
+  '''Used for conditional transitions where a Loop must be empty.
+    Returns true if the track_list is empty'''
   @property
   def no_tracks(self):
     if(self.loop.track_count == 0):
