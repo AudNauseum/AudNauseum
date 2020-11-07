@@ -72,11 +72,10 @@ class Loop:
     '''Remove a track by index in the tracks list.  Note: Does not return the Track removed from the list. 
     I chose to return a bool to track success.
     If anyone thinks of a good reason to return the object instead of tracking success of the operation, 
-    we can.  I wrote that code.  It just needs to be uncommented and the success code commented out'''
+    we can do that.'''
     def pop(self, index):
         if(index < len(self.tracks)):
-            output = self.tracks.pop(index)
-            #return output
+            self.tracks.pop(index)
             return True
         else:
             return False

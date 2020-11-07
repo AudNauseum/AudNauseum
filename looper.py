@@ -19,7 +19,7 @@ class Looper(Machine):
   
   transitions = [
     #idle state transitions
-    { 'trigger': 'add_track', 'source': 'idle', 'dest': 'loaded', 'after': 'load_track', 'conditions' : 'has_loaded' },
+    { 'trigger': 'add_track', 'source': 'idle', 'dest': 'loaded' },
     { 'trigger': 'record', 'source': 'idle', 'dest': 'recording' },
 
     #loaded state transitions

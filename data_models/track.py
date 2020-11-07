@@ -5,7 +5,7 @@ from fx_settings import FxSettings
 class Track:
     '''A track represents an audio stream and a set of
     parameters that allow different tracks to sync together'''
-    def __init__(self, file_name, bpm, length_in_beats):
+    def __init__(self, file_name, bpm=None, length_in_beats=None):
         f = sf.SoundFile(file_name)
         samples = len(f)
         samplerate = f.samplerate
