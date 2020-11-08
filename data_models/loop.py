@@ -50,8 +50,8 @@ class Loop:
         except:
             pass
 
-    '''Add a track to track list'''
     def append(self, val):
+        '''Add a track to track list'''
         try:
             self._tracks = self._tracks + [val]
             return True
