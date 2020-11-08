@@ -31,8 +31,8 @@ class Loop:
         return(output)
     
     ##TEST METHOD
-    '''Just to test that I can reach a loop object. "I loop therefore I am"'''
     def solipsize(self):
+        '''Just to test that I can reach a loop object. "I loop therefore I am"'''
         print(f"I am a Loop object")
     
     @property
