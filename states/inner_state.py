@@ -1,7 +1,7 @@
 from data_models.loop import Loop
 
 
-class State:
+class InnerState:
     """Base class for State inherited by other classes"""
 
     def enter(self, loop: Loop):

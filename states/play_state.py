@@ -1,8 +1,8 @@
 from data_models.loop import Loop
-from .state import State
+from .inner_state import InnerState
 
 
-class PlayState(State):
+class PlayState(InnerState):
 
     def enter(self, loop: Loop):
         pass
