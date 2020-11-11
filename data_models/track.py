@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 import soundfile as sf
 import json
 import ntpath
-from fx_settings import FxSettings
-from complex_encoder import ComplexEncoder
+from .fx_settings import FxSettings
+from .complex_encoder import ComplexEncoder
 
 
 class Track:
@@ -11,9 +10,9 @@ class Track:
     parameters that allow different tracks to sync together'''
 
     def __init__(self, file_name, bpm=None, length_in_beats=None):
-        f = sf.SoundFile(file_name)
-        samples = len(f)
-        samplerate = f.samplerate
+        file = sf.SoundFile(file_name)
+        samples = len(file)
+        samplerate = file.samplerate
 
         self._file_name = file_name
         self._bpm: float = bpm
@@ -70,7 +69,7 @@ class Track:
 
 
 if __name__ == "__main__":
-    t = Track(f'resources/recordings/Soft_Piano_Music.wav', 100, 8)
+    t = Track('resources/recordings/Soft_Piano_Music.wav', 100, 8)
     print(f'File Name: {t.file_name}')
     print(f'BPM: {t.bpm}')
     print(f'Length In Beats: {t.beat_length}')

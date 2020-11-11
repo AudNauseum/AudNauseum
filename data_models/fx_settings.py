@@ -1,11 +1,7 @@
-import sys
-
-sys.path.append('..')
-sys.path.append('data_models')
-
-import json, ntpath
+import json
+from . import complex_encoder
 from dataclasses import dataclass
-from complex_encoder import ComplexEncoder
+
 
 @dataclass
 class FxSettings:
@@ -20,7 +16,7 @@ class FxSettings:
     @property
     def volume(self):
         return self._volume
-    
+
     @volume.setter
     def volume(self, value):
         self._volume = value
@@ -36,7 +32,7 @@ class FxSettings:
     @property
     def is_reversed(self):
         return self._is_reversed
-    
+
     @is_reversed.setter
     def is_reversed(self, value):
         self._is_reversed = value
@@ -44,7 +40,7 @@ class FxSettings:
     @property
     def pitch_adjust(self):
         return self._pitch_adjust
-    
+
     @pitch_adjust.setter
     def pitch_adjust(self, value):
         self._pitch_adjust = value
@@ -52,13 +48,14 @@ class FxSettings:
     @property
     def slip(self):
         return self._slip
-    
+
     @slip.setter
     def slip(self, value):
-        self._slip = value 
+        self._slip = value
 
     def reprJSON(self):
         return dict(volume=self.volume, pan=self.pan, is_reversed=self.is_reversed, pitch_adjust=self.pitch_adjust, slip=self.slip)
+
 
 if __name__ == "__main__":
     f = FxSettings()
@@ -80,4 +77,4 @@ if __name__ == "__main__":
     print(f'Pitch: {f.pitch_adjust}')
     print(f'Slip: {f.slip}')
     print("JSON DUMP")
-    print(json.dumps(f, cls=ComplexEncoder, indent=4))
+    print(json.dumps(f, cls=complex_encoder.ComplexEncoder, indent=4))

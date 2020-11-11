@@ -1,13 +1,9 @@
-from complex_encoder import ComplexEncoder
-from fx_settings import FxSettings
-from track import Track
-from metronome import Metronome
+from .complex_encoder import ComplexEncoder
+from .fx_settings import FxSettings
+from .track import Track
+from metronome.metronome import Metronome
 import json
 import ntpath
-import sys
-
-sys.path.append('data_models')
-sys.path.append('metronome')
 
 
 class Loop:
