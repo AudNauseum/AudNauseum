@@ -19,11 +19,14 @@ class Looper(Machine):
     The Looper may be in any one of these states at a given time.
       States:
       idle:                   The looper has no audio tracks added
-      loaded:                 The looper has at least one track loaded, audio cursor at 0
+      loaded:                 The looper has at least one track loaded, audio
+                                cursor at 0
       playing:                The looper is playing the track list
       recording:              The looper is recording an audio stream
-      playing_and_recording:  The looper is playing the track list and recording an audio stream
-      paused:                 The audio looper has at least one track loaded, audio cursor is at some other point than 0
+      playing_and_recording:  The looper is playing the track list and
+                                recording an audio stream
+      paused:                 The audio looper has at least one track loaded,
+                                audio cursor is at some other point than 0
     """
     states = ['idle', 'loaded', 'playing',
               'recording', 'playing_and_recording', 'paused']
@@ -88,39 +91,74 @@ class Looper(Machine):
          'dest': 'None'},  # Not a transition
 
         # playing_and_recording state transitions
-        {'trigger': 'record', 'source': 'playing_and_recording', 'dest': 'playing'},
-        {'trigger': 'play', 'source': 'playing_and_recording', 'dest': 'playing'},
-        {'trigger': 'pause', 'source': 'playing_and_recording', 'dest': 'paused'},
-        {'trigger': 'stop', 'source': 'playing_and_recording', 'dest': 'loaded'},
-        {'trigger': 'metronome', 'source': 'playing_and_recording',
-         'dest': 'None'},  # Not a transition
-        {'trigger': 'global_fx', 'source': 'playing_and_recording',
-         'dest': 'None'},  # Not a transition
-        {'trigger': 'track_fx', 'source': 'playing_and_recording',
-         'dest': 'None'},  # Not a transition
+        {'trigger': 'record',
+            'source': 'playing_and_recording',
+            'dest': 'playing'
+         },
+        {'trigger': 'play',
+            'source': 'playing_and_recording',
+            'dest': 'playing'
+         },
+        {'trigger': 'pause',
+            'source': 'playing_and_recording',
+            'dest': 'paused'
+         },
+        {'trigger': 'stop',
+            'source': 'playing_and_recording',
+            'dest': 'loaded'
+         },
+        {'trigger': 'metronome',
+            'source': 'playing_and_recording',
+            'dest': 'None'
+         },  # Not a transition
+        {'trigger': 'global_fx',
+            'source': 'playing_and_recording',
+            'dest': 'None'
+         },  # Not a transition
+        {'trigger': 'track_fx',
+            'source': 'playing_and_recording',
+            'dest': 'None'
+         },  # Not a transition
 
         # paused state transitions
-        {'trigger': 'record', 'source': 'paused',
-         'dest': 'playing_and_recording'},
-        {'trigger': 'play', 'source': 'paused', 'dest': 'playing'},
-        {'trigger': 'pause', 'source': 'paused', 'dest': 'playing'},
-        {'trigger': 'stop', 'source': 'paused', 'dest': 'loaded'},
-        {'trigger': 'metronome', 'source': 'paused',
-         'dest': 'None'},  # Not a transition
-        {'trigger': 'metronome_settings', 'source': 'paused',
-         'dest': 'None'},  # Not a transition
-        {'trigger': 'global_fx', 'source': 'paused',
-         'dest': 'None'},  # Not a transition
-        {'trigger': 'track_fx', 'source': 'paused',
-         'dest': 'None'},  # Not a transition
+        {'trigger': 'record',
+            'source': 'paused',
+            'dest': 'playing_and_recording'
+         },
+        {'trigger': 'play',
+            'source': 'paused',
+            'dest': 'playing'
+         },
+        {'trigger': 'pause',
+            'source': 'paused',
+            'dest': 'playing'
+         },
+        {'trigger': 'stop',
+            'source': 'paused',
+            'dest': 'loaded'
+         },
+        {'trigger': 'metronome',
+            'source': 'paused',
+            'dest': 'None'},  # Not a transition
+        {'trigger': 'metronome_settings',
+            'source': 'paused',
+            'dest': 'None'},  # Not a transition
+        {'trigger': 'global_fx',
+            'source': 'paused',
+            'dest': 'None'},  # Not a transition
+        {'trigger': 'track_fx',
+            'source': 'paused',
+            'dest': 'None'
+         },  # Not a transition
     ]
 
     def __init__(self, volume=1, pan=0.5, loop=None):
         Machine.__init__(self, states=self.states, initial='idle')
         self.fx = FxSettings()
-        self.machine = Machine(model=self, states=Looper.states, initial='idle',
-                               transitions=Looper.transitions, ignore_invalid_triggers=True)
-        if(loop == None):
+        self.machine = Machine(model=self, states=Looper.states,
+                               initial='idle', transitions=Looper.transitions,
+                               ignore_invalid_triggers=True)
+        if(loop is None):
             self.loop = Loop()
         else:
             self.loop = loop
@@ -143,7 +181,8 @@ class Looper(Machine):
         pass
 
     def unload_track(self):
-        # TODO - write code to unload a track from a loop--should call a method from Loop object
+        # TODO - write code to unload a track from a loop--should call a method
+        # from Loop object
         # hardcoded True for testing
         return True
 
@@ -161,10 +200,8 @@ class Looper(Machine):
         pass
 
     def write_recording_to_track(self, numpyArray):
-        '''Converts an audio array into a track.
-
-        Used at the end of recording in recording or playing_and_recording states
-        '''
+        '''Converts an audio array into a track. Used at the end of recording
+        in recording or playing_and_recording states'''
         pass
 
     @property
