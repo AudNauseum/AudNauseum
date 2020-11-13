@@ -13,7 +13,7 @@ class Metronome:
         self._volume = volume
         self._count_in = count_in
         self._is_on = is_on
-    
+
     def reprJSON(self):
         return dict(bpm=self.bpm, beats=self.beats, volume=self.volume, count_in=self.count_in, is_on=self.is_on)
 
