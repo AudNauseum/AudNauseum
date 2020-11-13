@@ -1,7 +1,7 @@
 from .complex_encoder import ComplexEncoder
 from .fx_settings import FxSettings
 from .track import Track
-from metronome.metronome import Metronome
+from audnauseum.metronome.metronome import Metronome
 import json
 import ntpath
 
