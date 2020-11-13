@@ -1,5 +1,5 @@
 import unittest
-from state_machine.looper import Looper, LooperStates
+from audnauseum.state_machine.looper import Looper, LooperStates
 
 
 class LooperStateTransitionsTest(unittest.TestCase):

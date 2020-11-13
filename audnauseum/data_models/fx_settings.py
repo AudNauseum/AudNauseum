@@ -1,5 +1,5 @@
 import json
-from . import complex_encoder
+from .complex_encoder import ComplexEncoder
 from dataclasses import dataclass
 
 
@@ -54,7 +54,10 @@ class FxSettings:
         self._slip = value
 
     def reprJSON(self):
-        return dict(volume=self.volume, pan=self.pan, is_reversed=self.is_reversed, pitch_adjust=self.pitch_adjust, slip=self.slip)
+        return dict(volume=self.volume, pan=self.pan,
+                    is_reversed=self.is_reversed,
+                    pitch_adjust=self.pitch_adjust,
+                    slip=self.slip)
 
 
 if __name__ == "__main__":
@@ -77,4 +80,4 @@ if __name__ == "__main__":
     print(f'Pitch: {f.pitch_adjust}')
     print(f'Slip: {f.slip}')
     print("JSON DUMP")
-    print(json.dumps(f, cls=complex_encoder.ComplexEncoder, indent=4))
+    print(json.dumps(f, cls=ComplexEncoder, indent=4))

@@ -1,5 +1,5 @@
-from data_models.loop import Loop
-from data_models.track import Track
+from audnauseum.data_models.loop import Loop
+from audnauseum.data_models.track import Track
 import unittest
 
 
@@ -29,9 +29,6 @@ class LoopTest(unittest.TestCase):
     def test_delete_track(self):
         pass
 
-
-if __name__ == '__main__':
-    unittest.main()
 
 """
 if __name__ == "__main__":
