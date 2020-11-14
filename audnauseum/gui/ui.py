@@ -121,6 +121,23 @@ def openFileNamesDialog(self):
     fileName, _ = QFileDialog.getOpenFileName(
         self, "QFileDialog.getOpenFileName()", "", "Loops Files (*.json)", options=options)
     if fileName:
-        print(fileName)
+        # print(fileName)
+        parseJSON(fileName)
 
     os.chdir('../../')
+
+
+def parseJSON(fileName) -> object:
+    # read file
+    with open(fileName, 'r') as myfile:
+        data = myfile.read()
+
+    # parse file
+    obj = json.loads(data)
+
+    print('file path: ', obj['file_path'])         # path
+    print('bpm:', obj['tracks'][0]['bpm'])         # bpm
+    print('beats:', obj['met']['beats'])           # beats
+    print('volume:', obj['fx']['volume'])          # volume
+
+    return obj
