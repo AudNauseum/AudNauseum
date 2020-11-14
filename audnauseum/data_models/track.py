@@ -15,9 +15,9 @@ class Track:
         samplerate = file.samplerate
 
         self._file_name = file_name
-        self._bpm: float = bpm
         self._beat_length: int = length_in_beats
         self._ms_length: float = samples / samplerate * 1000
+        self._bpm: float = bpm
         self._fx = FxSettings()
 
     @property
@@ -57,15 +57,9 @@ class Track:
         return self._fx
 
     def reprJSON(self):
-        return dict(file_name=self.file_name, bpm=self.bpm, beat_length=self.beat_length, ms_length=self.ms_length, fx=self.fx)
-
-    # TODO: rewrite write_JSON to write all loop and track info to a common file.
-    def write_JSON(self):
-        print(json.dumps(self, cls=ComplexEncoder))
-        with open('./json/tracks/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
-            f.write(json.dumps(self, cls=ComplexEncoder))
-
-    # TODO: write a read_JSON feature to read specified content of a JSON file into a track or loop
+        return dict(file_name=self.file_name, bpm=self.bpm,
+                    beat_length=self.beat_length, ms_length=self.ms_length,
+                    fx=self.fx)
 
 
 if __name__ == "__main__":

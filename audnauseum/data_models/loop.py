@@ -18,20 +18,6 @@ class Loop:
         # Sets the audio cursor to point at the beginning of the loop
         self.audio_cursor = 0
 
-    # NOTE: We can change the behavior of __str__ if you guys want it to be something else
-    def __str__(self):
-        if len(self.tracks) == 0:
-            return 'Track List is Empty'
-        output = 'Loop:\n=====\n'
-        for each in self.tracks:
-            output += ntpath.basename(each.file_name) + '\n'
-        return(output)
-
-    # TEST METHOD
-    def solipsize(self):
-        '''Just to test that I can reach a loop object. "I loop therefore I am"'''
-        print("I am a Loop object")
-
     @property
     def track_count(self):
         return len(self._tracks)
@@ -44,15 +30,16 @@ class Loop:
     def tracks(self, track):
         try:
             self._tracks = track
-        except:
-            pass
+        except Exception:
+            print("Exception while settings tracks in Loop Object")
 
     def append(self, val):
         '''Add a track to track list'''
         try:
             self._tracks = self._tracks + [val]
             return True
-        except:
+        except Exception:
+            print("Exception while appending Track to tracklist")
             return False
 
     '''Add a list of tracks to track list'''
@@ -61,10 +48,12 @@ class Loop:
         try:
             self._tracks = self.tracks.extend(val)
             return True
-        except:
+        except Exception:
+            print("Exception while extending tracks attribute of Loop Object.")
             return False
 
-    '''Remove a track by file_path. Removes the first instance of a Track with a given file_path'''
+    '''Remove a track by file_path. Removes the first instance of a Track with 
+    a given file_path'''
 
     def remove(self, file_path):
         for index, track in enumerate(self.tracks):
@@ -72,11 +61,6 @@ class Loop:
                 del self.tracks[index]
                 return True
         return False
-
-    # NOTE: If anyone thinks of a good reason to return the object
-    # instead of tracking success of the operation, we can do that.
-    '''Remove a track by index in the tracks list.  Note: Does not return the Track removed from the list. 
-    I chose to return a bool to report success of the operation.'''
 
     def pop(self, index):
         if(index < len(self.tracks)):
@@ -96,14 +80,12 @@ class Loop:
     def reprJSON(self):
         return dict(tracks=self.tracks, met=self.met, fx=self.fx)
 
-    # TODO: change write_json implementation so all loops and tracks write their settings to a common JSON file
-    def write_json(self):
-        if not(self.file_name):
-            self.file_name = input('Enter File Name: ')
-        with open('./json/loops/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
-            f.write(json.dumps(self, cls=ComplexEncoder))
+    def write_json(self, file_path):
+        with open(file_path, 'w') as f:
+            f.write(json.dumps(self, ComplexEncoder))
 
-    # TODO: implement feature to read from JSON file into objects using a Complex Decoder
+    # TODO: implement feature to read from JSON file into objects using a
+    # Complex Decoder
 
 
 if __name__ == "__main__":
@@ -113,9 +95,6 @@ if __name__ == "__main__":
     # Create Tracks
     t1 = Track('resources/recordings/Soft_Piano_Music.wav')
     t2 = Track('resources/recordings/Soft_Piano_Music.wav')
-
-    # Contact Loop, get response
-    loop.solipsize()
 
     # Add tracks to loop
     loop.append(t1)

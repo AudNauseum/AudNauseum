@@ -52,7 +52,7 @@ class Looper:
         {'trigger': 'metronome', 'source': LooperStates.IDLE,
          'dest': 'None'},  # Not a transition
         {'trigger': 'metronome_settings', 'source': LooperStates.IDLE,
-         'dest': 'None'},  # Not a transition
+         'dest': 'None', 'before': 'toggle_metronome'},  # Not a transition
         {'trigger': 'global_fx', 'source': LooperStates.IDLE,
          'dest': 'None'},  # Not a transition
 
@@ -155,6 +155,10 @@ class Looper:
         else:
             self.loop = loop
 
+    def load_loop(self):
+        # TODO
+        pass
+
     def select_track(self):
         """Displays a list of audio files to import"""
         tracks = list(os.listdir('resources/recordings'))
@@ -179,9 +183,9 @@ class Looper:
         return True
 
     def play_tracks(self, audioCursor):
-        '''Finds the correct point in the numpy arrays of the tracks and plays them.
-
-        Should be used in playing and playing_and_recording states.
+        '''Finds the correct point in the numpy arrays of the tracks 
+        and plays them. Should be used in playing and playing_and_recording 
+        states.
         '''
         # TODO-DAVE
         pass
@@ -193,15 +197,14 @@ class Looper:
 
     def write_recording_to_track(self, numpyArray):
         '''Converts an audio array into a track.
-
         Used at the end of recording in recording or playing_and_recording
         '''
         pass
 
     @property
     def has_loaded(self):
-        '''Used for conditional transitions where a file must successfully be loaded.
-
+        '''Used for conditional transitions where a file must 
+        successfully be loaded.
         Returns true if loading a track was successful
         '''
         # TODO
@@ -211,10 +214,114 @@ class Looper:
     @property
     def no_tracks(self):
         '''Used for conditional transitions where a Loop must be empty.
-
         Returns true if the track_list is empty
         '''
         return self.loop.track_count == 0
+
+    # Metronome controls
+    def metronome_toggle(self):
+        '''Turn metronome ON and OFF'''
+        self.loop.met.is_on = !(self.loop.met.is_on)
+        return True
+
+    def metronome_volume_inc(self):
+        '''Increase Volume of metronome'''
+        if(self.loop.met.volume < 1):
+            self.loop.met.volume += 0.01
+            return True
+        return False
+
+    def metronome_volume_dec(self):
+        '''Decrease volume of metronome'''
+        if(self.loop.met.volume > 0):
+            self.loop.met.volume -= 1
+            return True
+        return False
+
+    def metronome_set_bpm(self, bpm):
+        if(bpm > 0 and bpm < 300):
+            self.loop.met.bpm = int(bpm)
+            return True
+        return False
+
+    def metronome_bpm_inc(self):
+        if(bpm < 300):
+            self.loop.met.bpm += 1
+            return True
+        return False
+
+    def metronome_bpm_dec(self):
+        if(bpm > 0):
+            self.loop.met.bpm -= 1
+            return True
+        return False
+
+    def metronome_set_beats(self, beats):
+        if(beats > 0):
+            self.loop.met.beats = int(beats)
+            return True
+        return False
+
+    def metronome_beats_inc(self):
+        self.loop.met.beats += 1
+        return True
+
+    def metronome_beats_dec(self):
+        if(self.loop.met.beats > 1):
+            self.loop.met.beats -= 1
+            return True
+        return False
+
+    def metronome_toggle_count_in(self):
+        '''Let's call count-in a stretch goal.  It will affect what happens
+        where the use presses record, and that might add more complexity than
+        we care to.'''
+        self.loop.met.count_in = !(self.loop.met.count_in)
+        return True
+
+    # Loop Effects controls
+    def set_volume(self, volume):
+        if(volume >= 0 and volume <= 1):
+            self.loop.fx.volume = volume
+            return True
+        return False
+
+    def volume_inc(self):
+        if(self.loop.fx.volume <= 0.99):
+            self.loop.fx.volume += 0.01
+            return True
+        return False
+
+    def volume_dec(self):
+        if(self.loop.fx.volume >= 0.01):
+            self.loop.fx.volume -= 0.01
+            return True
+        return False
+
+    def set_pan(self, pan):
+        if(pan >= 0 and pan <= 1):
+            self.loop.fx.pitch_adjust = pan
+            return True
+        return False
+
+    def pan_inc(self):
+        if(self.loop.fx.pan <= 0.99):
+            self.loop.fx.pan += 0.01
+            return True
+        return False
+
+    def pan_dec(self):
+        if(self.loop.fx.pan >= 0.01):
+            self.loop.fx.pan -= 0.01
+            return True
+        return False
+
+    # Track controls
+    def create_track(self, audio_file):
+        pass
+
+    def add_track(self, track):
+        pass
 
 
 if __name__ == "__main__":

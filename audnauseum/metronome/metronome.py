@@ -7,7 +7,8 @@ sd.default.samplerate = 44100
 
 
 class Metronome:
-    def __init__(self, bpm=None, beats=None, volume=0.5, count_in=False, is_on=False):
+    def __init__(self, bpm=None, beats=None, volume=0.5, count_in=False,
+                 is_on=False):
         self._bpm = bpm
         self._beats = beats
         self._volume = volume
@@ -15,10 +16,12 @@ class Metronome:
         self._is_on = is_on
 
     def reprJSON(self):
-        return dict(bpm=self.bpm, beats=self.beats, volume=self.volume, count_in=self.count_in, is_on=self.is_on)
+        return dict(bpm=self.bpm, beats=self.beats, volume=self.volume,
+                    count_in=self.count_in, is_on=self.is_on)
 
     def __str__(self):
-        return f'BPM: {self.bpm}\nBEATS: {self.beats}\nVOL: {self.volume}\nCOUNT_IN: {self.count_in}\nIS_ON: {self.is_on}'
+        return f'BPM: {self.bpm}\nBEATS: {self.beats}\nVOL:
+        {self.volume}\nCOUNT_IN: {self.count_in}\nIS_ON: {self.is_on}'
 
     @property
     def bpm(self):
