@@ -1,7 +1,10 @@
 from audnauseum.state_machine.looper import Looper
 import time
+import os
+import json
 from pathlib import Path
 
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5 import uic
 
 
@@ -19,6 +22,7 @@ def connect_all_inputs(ui, looper: Looper):
     connect_volume_dial(ui, looper)
     connect_track_select(ui, looper)
     initialize_lcd_display(ui, looper)
+    connect_load_loop(ui, looper)
 
 
 def connect_transport_control_buttons(ui, looper: Looper):
@@ -78,6 +82,13 @@ def initialize_lcd_display(ui, looper: Looper):
     # ui.lcdNumber.display(countdown(ui))
 
 
+def connect_load_loop(ui, looper: Looper):
+    """LOAD LOOP
+    Add listener for selection of loop JSON file
+    """
+    ui.pushButton_load_file.clicked.connect(lambda: openFileNamesDialog(ui))
+
+
 def whichbtn(_str):
     print("clicked button is", _str)
 
@@ -96,3 +107,20 @@ def countdown(ui):
     for i in range(1, 1000):
         time.sleep(1)
         return i
+
+
+# Modified from source code example: https://pythonspot.com/pyqt5-file-dialog/
+
+def openFileNamesDialog(self):
+    options = QFileDialog.Options()
+    options |= QFileDialog.DontUseNativeDialog
+
+    # print(os.getcwd())
+    os.chdir('./resources/json')
+
+    fileName, _ = QFileDialog.getOpenFileName(
+        self, "QFileDialog.getOpenFileName()", "", "Loops Files (*.json)", options=options)
+    if fileName:
+        print(fileName)
+
+    os.chdir('../../')
