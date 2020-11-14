@@ -1,8 +1,5 @@
-import sys
-sys.path.append('data_models')
-from metronome import Metronome
-from data_models.loop import Loop
-from inner_state import InnerState
+from ..data_models.loop import Loop
+from .inner_state import InnerState
 
 
 class IdleState(InnerState):

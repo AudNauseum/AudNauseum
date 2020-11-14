@@ -1,4 +1,4 @@
-from data_models.loop import Loop
+from ..data_models.loop import Loop
 
 
 class InnerState:

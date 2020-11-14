@@ -1,5 +1,5 @@
-from data_models.loop import Loop
-from data_models.fx_settings import FxSettings
+from audnauseum.data_models.loop import Loop
+from audnauseum.data_models.fx_settings import FxSettings
 from transitions import Machine
 from bullet import Bullet
 import os
@@ -31,11 +31,14 @@ class Looper:
     The Looper may be in any one of these states at a given time.
       States:
       idle:                   The looper has no audio tracks added
-      loaded:                 The looper has at least one track loaded, audio cursor at 0
+      loaded:                 The looper has at least one track loaded,
+                                audio cursor at 0
       playing:                The looper is playing the track list
       recording:              The looper is recording an audio stream
-      playing_and_recording:  The looper is playing the track list and recording an audio stream
-      paused:                 The audio looper has at least one track loaded, audio cursor is at some other point than 0
+      playing_and_recording:  The looper is playing the track list and
+                                recording an audio stream
+      paused:                 The audio looper has at least one track loaded,
+                                audio cursor is at some other point than 0
     """
 
     transitions = [
@@ -58,8 +61,9 @@ class Looper:
          'dest': LooperStates.PLAYING_AND_RECORDING},
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
-        {'trigger': 'remove_track', 'source': LooperStates.LOADED, 'dest': LooperStates.IDLE,
-         'after': 'unload_track', 'conditions': 'no_tracks'},
+        {'trigger': 'remove_track', 'source': LooperStates.LOADED,
+         'dest': LooperStates.IDLE, 'after': 'unload_track',
+         'conditions': 'no_tracks'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'unload_track'},
         {'trigger': 'record', 'source': LooperStates.LOADED,
@@ -169,7 +173,8 @@ class Looper:
         pass
 
     def unload_track(self):
-        # TODO - write code to unload a track from a loop--should call a method from Loop object
+        # TODO - write code to unload a track from a loop
+        # should call a method from Loop object
         # hardcoded True for testing
         return True
 
@@ -189,7 +194,7 @@ class Looper:
     def write_recording_to_track(self, numpyArray):
         '''Converts an audio array into a track.
 
-        Used at the end of recording in recording or playing_and_recording states
+        Used at the end of recording in recording or playing_and_recording
         '''
         pass
 
