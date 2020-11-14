@@ -221,7 +221,7 @@ class Looper:
     # Metronome controls
     def metronome_toggle(self):
         '''Turn metronome ON and OFF'''
-        self.loop.met.is_on = !(self.loop.met.is_on)
+        self.loop.met.is_on = not(self.loop.met.is_on)
         return True
 
     def metronome_volume_inc(self):
@@ -276,7 +276,7 @@ class Looper:
         '''Let's call count-in a stretch goal.  It will affect what happens
         where the use presses record, and that might add more complexity than
         we care to.'''
-        self.loop.met.count_in = !(self.loop.met.count_in)
+        self.loop.met.count_in = not(self.loop.met.count_in)
         return True
 
     # Loop Effects controls
@@ -318,10 +318,75 @@ class Looper:
 
     # Track controls
     def create_track(self, audio_file):
-        pass
+        t = Track(audio_file)
+        return t
 
     def add_track(self, track):
-        pass
+        self.loop.append(track)
+
+    def set_track_beat_length(self, track, beat_length):
+        track.beat_length = beat_length
+
+    def calc_track_bpm(self, track):
+        track.bpm = track.beat_length/track.ms_length * 60000
+
+    def track_set_volume(self, track, volume):
+        if(volume >= 0 and volume <= 1):
+            track.fx.volume = volume
+            return True
+        return False
+
+    def track_volume_inc(self, track):
+        if(track.fx.volume <= 0.99):
+            track.fx.volume += 0.01
+            return True
+        return False
+
+    def track_volume_dec(self, track):
+        if(track.fx.volume >= 0.01):
+            track.fx.volume -= 0.01
+            return True
+        return False
+
+    def track_set_pan(self, track, pan):
+        if(pan >= 0 and pan <= 1):
+            track.fx.pan = pan
+            return True
+        return False
+
+    def track_toggle_reverse(self, track):
+        track.fx.is_reversed = not(track.fx.is_reversed)
+
+    def track_set_pitch_adjust(self, track, adjust):
+        track.fx.pitch_adjust = adjust
+
+    def track_pitch_adjust_inc(self, track):
+        track.fx.pitch_adjust += 1
+
+    def track_pitch_adjust_dec(self, track):
+        track.fx.pitch_adjust -= 1
+
+    def track_set_slip(self, track, slip_ms):
+        slip_ms %= track.ms_length
+        track.fx.slip = track.samples / track.samplerate * slip_ms
+
+    def track_slip_inc(self, track):
+        '''increments by 1 ms'''
+        if(int((track.fx.slip + track.samplerate/1000)) < track.samples):
+            track.fx.slip += track.samplerate/1000
+        else:
+            track.fx.slip = 0  # We hit the end of the file, so start over
+        return True
+
+    def track_slip_dec(self, track):
+        '''decriments by 1 ms'''
+        if(int((track.fx.slip - track.samplerate/1000)) > 0):
+            track.fx.slip -= track.samplerate/1000
+        else:
+            track.fx.slip = track.samples - track.samplerate/1000
+            # We slipped back from the beginning of the file, so go to end, and
+            # back up 1ms
+        return True
 
 
 if __name__ == "__main__":

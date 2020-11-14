@@ -9,15 +9,17 @@ class Track:
     '''A track represents an audio stream and a set of
     parameters that allow different tracks to sync together'''
 
-    def __init__(self, file_name, bpm=None, length_in_beats=None):
+    def __init__(self, file_name, length_in_beats=None):
         file = sf.SoundFile(file_name)
-        samples = len(file)
-        samplerate = file.samplerate
-
+        self._samples = len(file)
+        self._samplerate = file.samplerate
         self._file_name = file_name
         self._beat_length: int = length_in_beats
         self._ms_length: float = samples / samplerate * 1000
-        self._bpm: float = bpm
+        if(self._ms_length != 0):
+            self._bpm: float = length_in_beats / self._ms_length * 60000
+        else:
+            self._bpm = None
         self._fx = FxSettings()
 
     @property
@@ -27,6 +29,14 @@ class Track:
     @file_name.setter
     def file_name(self, val):
         self._file_name = val
+
+    @property
+    def samples(self):
+        return self._samples
+
+    @property
+    def samplerate(self):
+        return self._samplerate
 
     @property
     def bpm(self):
