@@ -5,13 +5,12 @@ from audnauseum.metronome.metronome import Metronome
 import json
 import ntpath
 
-
 class Loop:
     '''Loop is the primary object that gets passed from state to state'''
 
     def __init__(self):
-        self.file_name = None
-        self._tracks: list[Track] = []  # List of Tracks in the loop
+        self._file_name = None
+        self._tracks = [Track]  # List of Tracks in the loop
         self._met = Metronome(100, 4)   # Initializes a metronome
         # Initializes Volume, Pan, Pitch, Reverse, and Slip settings for a loop
         self._fx = FxSettings()
@@ -52,7 +51,7 @@ class Loop:
             print("Exception while extending tracks attribute of Loop Object.")
             return False
 
-    '''Remove a track by file_path. Removes the first instance of a Track with 
+    '''Remove a track by file_path. Removes the first instance of a Track with
     a given file_path'''
 
     def remove(self, file_path):

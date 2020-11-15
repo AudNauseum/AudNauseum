@@ -4,7 +4,6 @@ import ntpath
 from .fx_settings import FxSettings
 from .complex_encoder import ComplexEncoder
 
-
 class Track:
     '''A track represents an audio stream and a set of
     parameters that allow different tracks to sync together'''
@@ -66,31 +65,11 @@ class Track:
     def fx(self):
         return self._fx
 
+    @classmethod
+    def from_json(cls, data: dict):
+        return cls(**data)
+
     def reprJSON(self):
         return dict(file_name=self.file_name, bpm=self.bpm,
                     beat_length=self.beat_length, ms_length=self.ms_length,
                     fx=self.fx)
-
-
-if __name__ == "__main__":
-    t = Track('resources/recordings/Soft_Piano_Music.wav', 100, 8)
-    print(f'File Name: {t.file_name}')
-    print(f'BPM: {t.bpm}')
-    print(f'Length In Beats: {t.beat_length}')
-    print(f'Length In MS: {t.ms_length}')
-    print('\n\n')
-    print("FX Properties:")
-    print("==============")
-    print(f'Volume: {t.fx.volume}')
-    print(f'Pan: {t.fx.pan}')
-    print(f'Pitch Adjust: {t.fx.pitch_adjust}')
-    print(f'Is Reversed: {t.fx.is_reversed}')
-    print(f'Slip: {t.fx.slip}')
-    print('\n\n')
-    t.fx.volume = 0.5
-    print(f'Changed Volume to {t.fx.volume}')
-    t.fx.slip = 2468372
-    print(f'Changed slip to {t.fx.slip}')
-    print("JSON DUMP")
-    print(json.dumps(t, cls=ComplexEncoder, indent=4))
-    t.write_JSON()

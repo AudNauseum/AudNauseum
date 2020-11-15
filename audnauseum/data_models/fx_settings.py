@@ -58,26 +58,3 @@ class FxSettings:
                     is_reversed=self.is_reversed,
                     pitch_adjust=self.pitch_adjust,
                     slip=self.slip)
-
-
-if __name__ == "__main__":
-    f = FxSettings()
-    print("FX SETTINGS\n==========")
-    print(f'Volume: {f.volume}')
-    print(f'Pan: {f.pan}')
-    print(f'Reverse: {f.is_reversed}')
-    print(f'Pitch: {f.pitch_adjust}')
-    print(f'Slip: {f.slip}')
-    print("Changing settings:\n==================")
-    f.volume = 0.75
-    f.pan = 0.25
-    f.is_reversed = True
-    f.pitch_adjust = -4
-    f.slip = 32678
-    print(f'Volume: {f.volume}')
-    print(f'Pan: {f.pan}')
-    print(f'Reverse: {f.is_reversed}')
-    print(f'Pitch: {f.pitch_adjust}')
-    print(f'Slip: {f.slip}')
-    print("JSON DUMP")
-    print(json.dumps(f, cls=ComplexEncoder, indent=4))
