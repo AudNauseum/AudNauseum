@@ -135,9 +135,27 @@ def parseJSON(fileName) -> object:
     # parse file
     obj = json.loads(data)
 
-    print('file path: ', obj['file_path'])         # path
-    print('bpm:', obj['tracks'][0]['bpm'])         # bpm
-    print('beats:', obj['met']['beats'])           # beats
-    print('volume:', obj['fx']['volume'])          # volume
+    # print('path: ', obj['file_path'])              # json path
+    # print('bpm:', obj['tracks'][0]['bpm'])         # bpm
+    # print('beats:', obj['met']['beats'])           # beats
+    # print('volume:', obj['fx']['volume'])          # volume
+
+    parseTrackList(obj)
 
     return obj
+
+
+def parseTrackList(object):
+    # iterate thru all tracks
+    for track in object['tracks']:
+
+        getTrackData(track)
+
+
+# Returns a tuple of track path name as a string and bpm as an int
+def getTrackData(track):
+
+    print(track['file_name'])
+    print(track['bpm'])
+
+    return (track['file_name'], track['bpm'])
