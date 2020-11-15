@@ -1,9 +1,10 @@
 from audnauseum.data_models.loop import Loop
-from audnauseum.data_models.fx_settings import FxSettings
+from audnauseum.data_models.complex_decoder import ComplexDecoder
 from transitions import Machine
 from bullet import Bullet
 import os
 import enum
+import json
 
 # import ntpath
 
@@ -145,7 +146,6 @@ class Looper:
     ]
 
     def __init__(self, volume=1, pan=0.5, loop=None):
-        self.fx = FxSettings()
         self.machine = Machine(model=self, states=LooperStates,
                                initial=LooperStates.IDLE,
                                transitions=Looper.transitions,
@@ -155,9 +155,23 @@ class Looper:
         else:
             self.loop = loop
 
-    def load_loop(self):
-        # TODO
-        pass
+    def load_loop(self, file_path):
+        try:
+            json_data = self.read_json(file_path)
+            self.loop = json.loads(json_data, cls=ComplexDecoder)
+            return True
+        except Exception as e:
+            print(
+                f'Exception while loading data from {file_path}\nMessage: {e}')
+            return False
+
+    def read_json(self, file_path):
+        with open(file_path, 'r') as f:
+            try:
+                return f.read()
+            except Exception as e:
+                print(
+                    f'Exception in read_json of file: {file_path}\nMessage: {e}')
 
     def select_track(self):
         """Displays a list of audio files to import"""

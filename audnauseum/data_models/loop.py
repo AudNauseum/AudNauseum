@@ -5,17 +5,57 @@ from audnauseum.metronome.metronome import Metronome
 import json
 import ntpath
 
-class Loop:
+
+class Loop(object):
     '''Loop is the primary object that gets passed from state to state'''
 
-    def __init__(self):
-        self._file_name = None
-        self._tracks = [Track]  # List of Tracks in the loop
-        self._met = Metronome(100, 4)   # Initializes a metronome
+    def __init__(self, file_path=None, tracks=[], met=None, fx=None,
+                 audio_cursor=0):
+        self._file_path = file_path
+        self._tracks = tracks  # List of Tracks in the loop
+        if(met):
+            self._met = met  # Initializes a metronome
+        else:
+            self._met = Metronome()
         # Initializes Volume, Pan, Pitch, Reverse, and Slip settings for a loop
-        self._fx = FxSettings()
+        if(fx):
+            self._fx = fx
+        else:
+            self._fx = FxSettings()
         # Sets the audio cursor to point at the beginning of the loop
-        self.audio_cursor = 0
+        self._audio_cursor = audio_cursor
+
+    def to_dict(self):
+        data = {}
+        data['__type__'] = 'Loop'
+        data['file_path'] = self.file_path
+        data['tracks'] = self.tracks
+        data['met'] = self.met
+        data['fx'] = self.fx
+        data['audio_cursor'] = self.audio_cursor
+        return data
+
+    def from_dict(self):
+        self.file_path = data['file_path']
+        self.tracks = data['tracks']
+        self.met = data['met']
+        self.fx = data['fx']
+        self.audio_cursor = data['audio_cursor']
+
+    def to_json(self):
+        return json.dumps(self, cls=ComplexEncoder, indent=4)
+
+    @property
+    def file_path(self):
+        return self._file_path
+
+    @file_path.setter
+    def file_path(self, fn):
+        try:
+            self._file_path = fn
+        except Exception as e:
+            print(
+                f"An Exception occurred while writing file_name {fn} to a Loop Object, Message: {e}")
 
     @property
     def track_count(self):
@@ -29,16 +69,17 @@ class Loop:
     def tracks(self, track):
         try:
             self._tracks = track
-        except Exception:
-            print("Exception while settings tracks in Loop Object")
+        except Exception as e:
+            print(
+                "Exception while settings tracks in Loop Object, Message: {e}")
 
     def append(self, val):
         '''Add a track to track list'''
         try:
             self._tracks = self._tracks + [val]
             return True
-        except Exception:
-            print("Exception while appending Track to tracklist")
+        except Exception as e:
+            print("Exception while appending Track to tracklist, Message: {e}")
             return False
 
     '''Add a list of tracks to track list'''
@@ -47,8 +88,9 @@ class Loop:
         try:
             self._tracks = self.tracks.extend(val)
             return True
-        except Exception:
-            print("Exception while extending tracks attribute of Loop Object.")
+        except Exception as e:
+            print(
+                "Exception while extending tracks attribute of Loop Object, Message: {e}")
             return False
 
     '''Remove a track by file_path. Removes the first instance of a Track with
@@ -76,15 +118,22 @@ class Loop:
     def fx(self):
         return self._fx
 
-    def reprJSON(self):
-        return dict(tracks=self.tracks, met=self.met, fx=self.fx)
+    @property
+    def audio_cursor(self):
+        return self._audio_cursor
+
+    @audio_cursor.setter
+    def audio_cursor(self, sample):
+        try:
+            self._audio_cursor = int(sample)
+        except Exception as e:
+            print(f"An exception occurred while attempting to set the \
+                  audio_cursor of a Loop to {sample}, Message: {e}")
 
     def write_json(self, file_path):
+        self.file_path = file_path
         with open(file_path, 'w') as f:
-            f.write(json.dumps(self, ComplexEncoder))
-
-    # TODO: implement feature to read from JSON file into objects using a
-    # Complex Decoder
+            f.write(json.dumps(self, cls=ComplexEncoder, indent=4))
 
 
 if __name__ == "__main__":
