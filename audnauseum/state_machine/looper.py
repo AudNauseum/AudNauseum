@@ -165,6 +165,9 @@ class Looper:
                 f'Exception while loading data from {file_path}\nMessage: {e}')
             return False
 
+    def write_loop(self, file_path):
+        self.loop.write_json(file_path)
+
     def read_json(self, file_path):
         with open(file_path, 'r') as f:
             try:

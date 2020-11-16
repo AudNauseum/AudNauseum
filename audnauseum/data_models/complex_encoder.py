@@ -10,7 +10,7 @@ class ComplexEncoder(json.JSONEncoder):
     Handles nested JSON of other objects appropriately"""
 
     def default(self, obj):
-        print(type(obj))
+        # print(type(obj))
         if isinstance(obj, list):
             output = []
             for each in obj:
