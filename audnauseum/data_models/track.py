@@ -5,20 +5,49 @@ from .fx_settings import FxSettings
 from .complex_encoder import ComplexEncoder
 
 
-class Track:
+class Track(object):
     '''A track represents an audio stream and a set of
     parameters that allow different tracks to sync together'''
 
-    def __init__(self, file_name, bpm=None, length_in_beats=None):
+    def __init__(self, file_name, beats=None, fx=None):
         file = sf.SoundFile(file_name)
-        samples = len(file)
-        samplerate = file.samplerate
-
+        self._samples = len(file)
+        self._samplerate = file.samplerate
         self._file_name = file_name
-        self._bpm: float = bpm
-        self._beat_length: int = length_in_beats
-        self._ms_length: float = samples / samplerate * 1000
-        self._fx = FxSettings()
+        self._beats: int = beats
+        self._ms_length: float = self.samples / self.samplerate * 1000
+        if(self._ms_length != 0):
+            self._bpm: float = self.beats / self._ms_length * 60000
+        else:
+            self._bpm = None
+        if(fx):
+            self._fx = fx
+        else:
+            self._fx = FxSettings()
+
+    def to_dict(self):
+        data = {}
+        data['__type__'] = 'Track'
+        data['beats'] = self.beats
+        data['bpm'] = self.bpm
+        data['file_name'] = self.file_name
+        data['ms_length'] = self.ms_length
+        data['samples'] = self.samples
+        data['samplerate'] = self.samplerate
+        data['fx'] = self.fx
+        return data
+
+    def from_dict(self, data):
+        self.beats = data['beats']
+        self.bpm = data['bpm']
+        self.file_name = data['file_name']
+        self.ms_length = data['ms_length']
+        self.samples = data['samples']
+        self.samplerate = data['samplerate']
+        self.fx = data['fx']
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
 
     @property
     def file_name(self):
@@ -29,6 +58,14 @@ class Track:
         self._file_name = val
 
     @property
+    def samples(self):
+        return self._samples
+
+    @property
+    def samplerate(self):
+        return self._samplerate
+
+    @property
     def bpm(self):
         return self._bpm
 
@@ -37,12 +74,12 @@ class Track:
         self._bpm = val
 
     @property
-    def beat_length(self):
-        return self._beat_length
+    def beats(self):
+        return self._beats
 
-    @beat_length.setter
-    def beat_length(self, val):
-        self._beat_length = val
+    @beats.setter
+    def beats(self, val):
+        self._beats = val
 
     @property
     def ms_length(self):
@@ -56,37 +93,6 @@ class Track:
     def fx(self):
         return self._fx
 
-    def reprJSON(self):
-        return dict(file_name=self.file_name, bpm=self.bpm, beat_length=self.beat_length, ms_length=self.ms_length, fx=self.fx)
-
-    # TODO: rewrite write_JSON to write all loop and track info to a common file.
-    def write_JSON(self):
-        print(json.dumps(self, cls=ComplexEncoder))
-        with open('./json/tracks/' + ntpath.splitext(ntpath.basename(self.file_name))[0] + '.json', 'w') as f:
-            f.write(json.dumps(self, cls=ComplexEncoder))
-
-    # TODO: write a read_JSON feature to read specified content of a JSON file into a track or loop
-
-
-if __name__ == "__main__":
-    t = Track('resources/recordings/Soft_Piano_Music.wav', 100, 8)
-    print(f'File Name: {t.file_name}')
-    print(f'BPM: {t.bpm}')
-    print(f'Length In Beats: {t.beat_length}')
-    print(f'Length In MS: {t.ms_length}')
-    print('\n\n')
-    print("FX Properties:")
-    print("==============")
-    print(f'Volume: {t.fx.volume}')
-    print(f'Pan: {t.fx.pan}')
-    print(f'Pitch Adjust: {t.fx.pitch_adjust}')
-    print(f'Is Reversed: {t.fx.is_reversed}')
-    print(f'Slip: {t.fx.slip}')
-    print('\n\n')
-    t.fx.volume = 0.5
-    print(f'Changed Volume to {t.fx.volume}')
-    t.fx.slip = 2468372
-    print(f'Changed slip to {t.fx.slip}')
-    print("JSON DUMP")
-    print(json.dumps(t, cls=ComplexEncoder, indent=4))
-    t.write_JSON()
+    @classmethod
+    def from_json(cls, data: dict):
+        return cls(**data)

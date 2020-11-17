@@ -1,9 +1,10 @@
 from audnauseum.data_models.loop import Loop
-from audnauseum.data_models.fx_settings import FxSettings
+from audnauseum.data_models.complex_decoder import ComplexDecoder
 from transitions import Machine
 from bullet import Bullet
 import os
 import enum
+import json
 
 # import ntpath
 
@@ -52,7 +53,7 @@ class Looper:
         {'trigger': 'metronome', 'source': LooperStates.IDLE,
          'dest': 'None'},  # Not a transition
         {'trigger': 'metronome_settings', 'source': LooperStates.IDLE,
-         'dest': 'None'},  # Not a transition
+         'dest': 'None', 'before': 'toggle_metronome'},  # Not a transition
         {'trigger': 'global_fx', 'source': LooperStates.IDLE,
          'dest': 'None'},  # Not a transition
 
@@ -145,7 +146,6 @@ class Looper:
     ]
 
     def __init__(self, volume=1, pan=0.5, loop=None):
-        self.fx = FxSettings()
         self.machine = Machine(model=self, states=LooperStates,
                                initial=LooperStates.IDLE,
                                transitions=Looper.transitions,
@@ -155,6 +155,27 @@ class Looper:
             self.loop = Loop()
         else:
             self.loop = loop
+
+    def load_loop(self, file_path):
+        try:
+            json_data = self.read_json(file_path)
+            self.loop = json.loads(json_data, cls=ComplexDecoder)
+            return True
+        except Exception as e:
+            print(
+                f'Exception while loading data from {file_path}\nMessage: {e}')
+            return False
+
+    def write_loop(self, file_path):
+        self.loop.write_json(file_path)
+
+    def read_json(self, file_path):
+        with open(file_path, 'r') as f:
+            try:
+                return f.read()
+            except Exception as e:
+                print(
+                    f'Exception in read_json of file: {file_path}\nMessage: {e}')
 
     def echo_state_change(self, *args):
         """TEMPORARY: Prints the state to the terminal after changing
@@ -191,9 +212,9 @@ class Looper:
         return True
 
     def play_tracks(self, audioCursor):
-        '''Finds the correct point in the numpy arrays of the tracks and plays them.
-
-        Should be used in playing and playing_and_recording states.
+        '''Finds the correct point in the numpy arrays of the tracks 
+        and plays them. Should be used in playing and playing_and_recording 
+        states.
         '''
         # TODO-DAVE
         pass
@@ -205,15 +226,14 @@ class Looper:
 
     def write_recording_to_track(self, numpyArray):
         '''Converts an audio array into a track.
-
         Used at the end of recording in recording or playing_and_recording
         '''
         pass
 
     @property
     def has_loaded(self):
-        '''Used for conditional transitions where a file must successfully be loaded.
-
+        '''Used for conditional transitions where a file must 
+        successfully be loaded.
         Returns true if loading a track was successful
         '''
         # TODO
@@ -223,10 +243,179 @@ class Looper:
     @property
     def no_tracks(self):
         '''Used for conditional transitions where a Loop must be empty.
-
         Returns true if the track_list is empty
         '''
         return self.loop.track_count == 0
+
+    # Metronome controls
+    def metronome_toggle(self):
+        '''Turn metronome ON and OFF'''
+        self.loop.met.is_on = not(self.loop.met.is_on)
+        return True
+
+    def metronome_volume_inc(self):
+        '''Increase Volume of metronome'''
+        if(self.loop.met.volume < 1):
+            self.loop.met.volume += 0.01
+            return True
+        return False
+
+    def metronome_volume_dec(self):
+        '''Decrease volume of metronome'''
+        if(self.loop.met.volume > 0):
+            self.loop.met.volume -= 1
+            return True
+        return False
+
+    def metronome_set_bpm(self, bpm):
+        if(bpm > 0 and bpm < 300):
+            self.loop.met.bpm = int(bpm)
+            return True
+        return False
+
+    def metronome_bpm_inc(self):
+        if(bpm < 300):
+            self.loop.met.bpm += 1
+            return True
+        return False
+
+    def metronome_bpm_dec(self):
+        if(bpm > 0):
+            self.loop.met.bpm -= 1
+            return True
+        return False
+
+    def metronome_set_beats(self, beats):
+        if(beats > 0):
+            self.loop.met.beats = int(beats)
+            return True
+        return False
+
+    def metronome_beats_inc(self):
+        self.loop.met.beats += 1
+        return True
+
+    def metronome_beats_dec(self):
+        if(self.loop.met.beats > 1):
+            self.loop.met.beats -= 1
+            return True
+        return False
+
+    def metronome_toggle_count_in(self):
+        '''Let's call count-in a stretch goal.  It will affect what happens
+        where the use presses record, and that might add more complexity than
+        we care to.'''
+        self.loop.met.count_in = not(self.loop.met.count_in)
+        return True
+
+    # Loop Effects controls
+    def set_volume(self, volume):
+        if(volume >= 0 and volume <= 1):
+            self.loop.fx.volume = volume
+            return True
+        return False
+
+    def volume_inc(self):
+        if(self.loop.fx.volume <= 0.99):
+            self.loop.fx.volume += 0.01
+            return True
+        return False
+
+    def volume_dec(self):
+        if(self.loop.fx.volume >= 0.01):
+            self.loop.fx.volume -= 0.01
+            return True
+        return False
+
+    def set_pan(self, pan):
+        if(pan >= 0 and pan <= 1):
+            self.loop.fx.pitch_adjust = pan
+            return True
+        return False
+
+    def pan_inc(self):
+        if(self.loop.fx.pan <= 0.99):
+            self.loop.fx.pan += 0.01
+            return True
+        return False
+
+    def pan_dec(self):
+        if(self.loop.fx.pan >= 0.01):
+            self.loop.fx.pan -= 0.01
+            return True
+        return False
+
+    # Track controls
+    def create_track(self, audio_file):
+        t = Track(audio_file)
+        return t
+
+    def add_track(self, track):
+        self.loop.append(track)
+
+    def set_track_beat_length(self, track, beat_length):
+        track.beat_length = beat_length
+
+    def calc_track_bpm(self, track):
+        track.bpm = track.beat_length/track.ms_length * 60000
+
+    def track_set_volume(self, track, volume):
+        if(volume >= 0 and volume <= 1):
+            track.fx.volume = volume
+            return True
+        return False
+
+    def track_volume_inc(self, track):
+        if(track.fx.volume <= 0.99):
+            track.fx.volume += 0.01
+            return True
+        return False
+
+    def track_volume_dec(self, track):
+        if(track.fx.volume >= 0.01):
+            track.fx.volume -= 0.01
+            return True
+        return False
+
+    def track_set_pan(self, track, pan):
+        if(pan >= 0 and pan <= 1):
+            track.fx.pan = pan
+            return True
+        return False
+
+    def track_toggle_reverse(self, track):
+        track.fx.is_reversed = not(track.fx.is_reversed)
+
+    def track_set_pitch_adjust(self, track, adjust):
+        track.fx.pitch_adjust = adjust
+
+    def track_pitch_adjust_inc(self, track):
+        track.fx.pitch_adjust += 1
+
+    def track_pitch_adjust_dec(self, track):
+        track.fx.pitch_adjust -= 1
+
+    def track_set_slip(self, track, slip_ms):
+        slip_ms %= track.ms_length
+        track.fx.slip = track.samples / track.samplerate * slip_ms
+
+    def track_slip_inc(self, track):
+        '''increments by 1 ms'''
+        if(int((track.fx.slip + track.samplerate/1000)) < track.samples):
+            track.fx.slip += track.samplerate/1000
+        else:
+            track.fx.slip = 0  # We hit the end of the file, so start over
+        return True
+
+    def track_slip_dec(self, track):
+        '''decriments by 1 ms'''
+        if(int((track.fx.slip - track.samplerate/1000)) > 0):
+            track.fx.slip -= track.samplerate/1000
+        else:
+            track.fx.slip = track.samples - track.samplerate/1000
+            # We slipped back from the beginning of the file, so go to end, and
+            # back up 1ms
+        return True
 
 
 if __name__ == "__main__":

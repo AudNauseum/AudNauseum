@@ -1,17 +1,36 @@
 import json
-from .complex_encoder import ComplexEncoder
-from dataclasses import dataclass
 
 
-@dataclass
-class FxSettings:
+class FxSettings(object):
     '''FxSettings are an attribute of both Tracks and Loops.
     Only "_slip" doesn't make sense when applying effects to loops'''
-    _volume: float = 1
-    _pan: float = 0.5
-    _is_reversed: bool = False
-    _pitch_adjust: int = 0
-    _slip: int = 0
+
+    def __init__(self, volume=1.0, pan=0.5, is_reversed=False, pitch_adjust=0, slip=0,):
+        self._volume = volume
+        self._pan = pan
+        self._is_reversed = is_reversed
+        self._pitch_adjust = pitch_adjust
+        self._slip = slip
+
+    def to_dict(self):
+        data = {}
+        data['__type__'] = 'FxSettings'
+        data['volume'] = self.volume
+        data['pan'] = self.pan
+        data['is_reversed'] = self.is_reversed
+        data['pitch_adjust'] = self.pitch_adjust
+        data['slip'] = self.slip
+        return data
+
+    def from_dict(self, data):
+        self.volume = data['volume']
+        self.pan = data['pan']
+        self.is_reversed = data['is_reversed']
+        self.pitch_adjust = data['pitch_adjust']
+        self.slip = data['slip']
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
 
     @property
     def volume(self):
@@ -52,32 +71,3 @@ class FxSettings:
     @slip.setter
     def slip(self, value):
         self._slip = value
-
-    def reprJSON(self):
-        return dict(volume=self.volume, pan=self.pan,
-                    is_reversed=self.is_reversed,
-                    pitch_adjust=self.pitch_adjust,
-                    slip=self.slip)
-
-
-if __name__ == "__main__":
-    f = FxSettings()
-    print("FX SETTINGS\n==========")
-    print(f'Volume: {f.volume}')
-    print(f'Pan: {f.pan}')
-    print(f'Reverse: {f.is_reversed}')
-    print(f'Pitch: {f.pitch_adjust}')
-    print(f'Slip: {f.slip}')
-    print("Changing settings:\n==================")
-    f.volume = 0.75
-    f.pan = 0.25
-    f.is_reversed = True
-    f.pitch_adjust = -4
-    f.slip = 32678
-    print(f'Volume: {f.volume}')
-    print(f'Pan: {f.pan}')
-    print(f'Reverse: {f.is_reversed}')
-    print(f'Pitch: {f.pitch_adjust}')
-    print(f'Slip: {f.slip}')
-    print("JSON DUMP")
-    print(json.dumps(f, cls=ComplexEncoder, indent=4))

@@ -6,19 +6,34 @@ import soundfile as sf
 sd.default.samplerate = 44100
 
 
-class Metronome:
-    def __init__(self, bpm=None, beats=None, volume=0.5, count_in=False, is_on=False):
+class Metronome(object):
+    def __init__(self, bpm=None, beats=None, volume=0.5, count_in=False,
+                 is_on=False):
         self._bpm = bpm
         self._beats = beats
         self._volume = volume
         self._count_in = count_in
         self._is_on = is_on
 
-    def reprJSON(self):
-        return dict(bpm=self.bpm, beats=self.beats, volume=self.volume, count_in=self.count_in, is_on=self.is_on)
+    def to_dict(self):
+        data = {}
+        data['__type__'] = 'Metronome'
+        data['bpm'] = self.bpm
+        data['beats'] = self.beats
+        data['volume'] = self.volume
+        data['count_in'] = self.count_in
+        data['is_on'] = self.is_on
+        return data
 
-    def __str__(self):
-        return f'BPM: {self.bpm}\nBEATS: {self.beats}\nVOL: {self.volume}\nCOUNT_IN: {self.count_in}\nIS_ON: {self.is_on}'
+    def from_dict(self, data):
+        self.bpm = data['bpm']
+        self.beats = data['beats']
+        self.volume = data['volume']
+        self.count_in = data['count_in']
+        self.is_on = data['is_on']
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
 
     @property
     def bpm(self):
