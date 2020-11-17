@@ -149,7 +149,8 @@ class Looper:
         self.machine = Machine(model=self, states=LooperStates,
                                initial=LooperStates.IDLE,
                                transitions=Looper.transitions,
-                               ignore_invalid_triggers=True)
+                               ignore_invalid_triggers=True,
+                               after_state_change=self.echo_state_change)
         if loop is None:
             self.loop = Loop()
         else:
@@ -175,6 +176,17 @@ class Looper:
             except Exception as e:
                 print(
                     f'Exception in read_json of file: {file_path}\nMessage: {e}')
+
+    def echo_state_change(self, *args):
+        """TEMPORARY: Prints the state to the terminal after changing
+
+        Unknown why at this time, but an argument is passed in when
+        a state change is triggered by clicking a UI button but not
+        passed in when triggered directly (i.e. in tests).
+        """
+        if args:
+            # Print state only when UI button is pressed (i.e. not tests)
+            print(f'Current State: {self.state}')
 
     def select_track(self):
         """Displays a list of audio files to import"""

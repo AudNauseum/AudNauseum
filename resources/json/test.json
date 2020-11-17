@@ -1,0 +1,52 @@
+{
+    "__loop__": true,
+    "file_path": "./resources/json/test.json",
+    "tracks": [
+        {
+            "__track__": true,
+            "file_name": "resources/recordings/Soft_Piano_Music.wav",
+            "bpm": 160,
+            "beat_length": 8,
+            "ms_length": 136933.875,
+            "fx": {
+                "__fx__": true,
+                "volume": 0.25,
+                "pan": 1.0,
+                "is_reversed": false,
+                "pitch_adjust": 0,
+                "slip": 0
+            }
+        },
+        {
+            "__track__": true,
+            "file_name": "resources/recordings/mic_recording_7_uwx2af.wav",
+            "bpm": 160,
+            "beat_length": 8,
+            "ms_length": 136933.875,
+            "fx": {
+                "__fx__": true,
+                "volume": 0.25,
+                "pan": 1.0,
+                "is_reversed": false,
+                "pitch_adjust": 0,
+                "slip": 0
+            }
+        }
+    ],
+    "met": {
+        "__met__": true,
+        "bpm": 9999,
+        "beats": 12,
+        "volume": 9999,
+        "count_in": true,
+        "is_on": true
+    },
+    "fx": {
+        "__fx__": true,
+        "volume": 1,
+        "pan": 0.5,
+        "is_reversed": false,
+        "pitch_adjust": 0,
+        "slip": 0
+    }
+}
