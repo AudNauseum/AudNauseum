@@ -1,8 +1,10 @@
 from audnauseum.data_models.loop import Loop
 from audnauseum.data_models.complex_decoder import ComplexDecoder
+from audnauseum.data_models.recorder import Recorder
 from transitions import Machine
 from bullet import Bullet
 import os
+import ntpath
 import enum
 import json
 
@@ -49,7 +51,7 @@ class Looper:
         {'trigger': 'add_track', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_track'},
         {'trigger': 'record', 'source': LooperStates.IDLE,
-            'dest': LooperStates.RECORDING},
+            'dest': LooperStates.RECORDING, 'after': 'start_recording'},
         {'trigger': 'metronome', 'source': LooperStates.IDLE,
          'dest': 'None'},  # Not a transition
         {'trigger': 'metronome_settings', 'source': LooperStates.IDLE,
@@ -82,13 +84,13 @@ class Looper:
 
         # recording state transitions
         {'trigger': 'record', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'play', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.PAUSED},
+            'dest': LooperStates.PAUSED, 'before': 'stop_recording'},
         {'trigger': 'stop', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.LOADED},
+            'dest': LooperStates.LOADED, 'before': 'stop_recording'},
         {'trigger': 'metronome', 'source': LooperStates.RECORDING,
          'dest': 'None'},  # Not a transition
         {'trigger': 'global_fx', 'source': LooperStates.RECORDING,
@@ -155,6 +157,7 @@ class Looper:
             self.loop = Loop()
         else:
             self.loop = loop
+        self.recorder = None
 
     def load_loop(self, file_path):
         try:
@@ -219,16 +222,21 @@ class Looper:
         # TODO-DAVE
         pass
 
-    def record_input(self):
+    def start_recording(self):
         '''Writes input audio stream to disk and sends stream to output'''
-        # TODO-STEVE
-        pass
+        if self.recorder is not None:
+            self.recorder = None
+        if(self.loop.file_path):
+            directory = ntpath.splittext(
+                ntpath.basename(self.loop.file_path))[0]
+            self.recorder = Recorder(directory=directory,
+                                     track_counter=self.loop.track_count)
+        else:
+            self.recorder = Recorder(track_counter=self.loop.track_count)
+        self.recorder.on_rec()
 
-    def write_recording_to_track(self, numpyArray):
-        '''Converts an audio array into a track.
-        Used at the end of recording in recording or playing_and_recording
-        '''
-        pass
+    def stop_recording(self):
+        self.recorder.on_stop()
 
     @property
     def has_loaded(self):
