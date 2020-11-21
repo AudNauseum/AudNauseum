@@ -1,9 +1,5 @@
 if __name__ == '__main__':
     import sys
-    import time
-    from audnauseum.state_machine.looper import Looper
+    from audnauseum.app import app
+    sys.exit(app.exec_())
 
-    L = Looper()
-    L.record()
-    time.sleep(5)
-    L.stop()
