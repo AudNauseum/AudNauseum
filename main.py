@@ -5,5 +5,7 @@ if __name__ == '__main__':
 
     L = Looper()
     L.record()
+    print("start recording")
     time.sleep(5)
+    print("stop recording")
     L.stop()

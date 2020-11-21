@@ -226,6 +226,7 @@ class Looper:
         '''Writes input audio stream to disk and sends stream to output'''
         if self.recorder is not None:
             self.recorder = None
+            
         if(self.loop.file_path):
             directory = ntpath.splittext(
                 ntpath.basename(self.loop.file_path))[0]

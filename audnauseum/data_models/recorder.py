@@ -109,6 +109,7 @@ class Recorder(object):
                 f.write(data)
 
 
+
 def main():
     R = Recorder('loop_test', 5)
     R.on_rec()
