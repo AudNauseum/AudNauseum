@@ -1,24 +1,31 @@
+import json
+from typing import List
+
 from .complex_encoder import ComplexEncoder
 from .fx_settings import FxSettings
 from .track import Track
 from audnauseum.metronome.metronome import Metronome
-import json
-import ntpath
 
 
 class Loop(object):
     '''Loop is the primary object that gets passed from state to state'''
 
+    _file_path: str
+    _met: Metronome
+    _fx: FxSettings
+    _tracks: List[Track]
+    _audio_cursor: int
+
     def __init__(self, file_path=None, tracks=[], met=None, fx=None,
                  audio_cursor=0):
         self._file_path = file_path
         self._tracks = tracks  # List of Tracks in the loop
-        if(met):
+        if met:
             self._met = met  # Initializes a metronome
         else:
             self._met = Metronome()
         # Initializes Volume, Pan, Pitch, Reverse, and Slip settings for a loop
-        if(fx):
+        if fx:
             self._fx = fx
         else:
             self._fx = FxSettings()
@@ -35,7 +42,7 @@ class Loop(object):
         data['audio_cursor'] = self.audio_cursor
         return data
 
-    def from_dict(self):
+    def from_dict(self, data):
         self.file_path = data['file_path']
         self.tracks = data['tracks']
         self.met = data['met']
@@ -71,7 +78,7 @@ class Loop(object):
             self._tracks = track
         except Exception as e:
             print(
-                "Exception while settings tracks in Loop Object, Message: {e}")
+                f"Exception while settings tracks in Loop Object, Message: {e}")
 
     def append(self, val):
         '''Add a track to track list'''
@@ -79,7 +86,8 @@ class Loop(object):
             self._tracks = self._tracks + [val]
             return True
         except Exception as e:
-            print("Exception while appending Track to tracklist, Message: {e}")
+            print(
+                f"Exception while appending Track to tracklist, Message: {e}")
             return False
 
     '''Add a list of tracks to track list'''
@@ -90,7 +98,7 @@ class Loop(object):
             return True
         except Exception as e:
             print(
-                "Exception while extending tracks attribute of Loop Object, Message: {e}")
+                f"Exception while extending tracks attribute of Loop Object, Message: {e}")
             return False
 
     '''Remove a track by file_path. Removes the first instance of a Track with
@@ -104,7 +112,7 @@ class Loop(object):
         return False
 
     def pop(self, index):
-        if(index < len(self.tracks)):
+        if index < len(self.tracks):
             self.tracks.pop(index)
             return True
         else:
@@ -134,38 +142,3 @@ class Loop(object):
         self.file_path = file_path
         with open(file_path, 'w') as f:
             f.write(json.dumps(self, cls=ComplexEncoder, indent=4))
-
-
-if __name__ == "__main__":
-    # TESTS
-    # Create Loop
-    loop = Loop()
-    # Create Tracks
-    t1 = Track('resources/recordings/Soft_Piano_Music.wav')
-    t2 = Track('resources/recordings/Soft_Piano_Music.wav')
-
-    # Add tracks to loop
-    loop.append(t1)
-    loop.append(t2)
-
-    # print loop details
-    print(loop)
-
-    # access the loop's metronome and fx
-    print(f'{loop.met}')
-    print(f'{loop.fx}')
-
-    # write loop information to ./json/loops
-    loop.write_json()
-
-    # remove a track from the loop by file_name
-    if loop.remove('resources/recordings/Soft_Piano_Music.wav'):
-        print("I removed a thing.")
-
-    print(loop)
-
-    # remove a track from the loop by index
-    if loop.pop(0):
-        print("I popped a thing.")
-
-    print(loop)
