@@ -1,6 +1,5 @@
 from audnauseum.state_machine.looper import Looper
 import time
-import os
 import json
 from pathlib import Path
 
@@ -86,7 +85,7 @@ def connect_load_loop(ui, looper: Looper):
     """LOAD LOOP
     Add listener for selection of loop JSON file
     """
-    ui.pushButton_load_file.clicked.connect(lambda: openFileNamesDialog(ui))
+    ui.pushButton_load_file.clicked.connect(lambda: load_loop(ui, looper))
 
 
 def whichbtn(_str):
@@ -111,20 +110,23 @@ def countdown(ui):
 
 # Modified from source code example: https://pythonspot.com/pyqt5-file-dialog/
 
-def openFileNamesDialog(self):
+def open_file_dialog(ui) -> str:
     options = QFileDialog.Options()
     options |= QFileDialog.DontUseNativeDialog
 
-    # print(os.getcwd())
-    os.chdir('./resources/json')
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui, "Choose a loop file", "./resources/json", "Loops Files (*.json)", options=options)
 
-    fileName, _ = QFileDialog.getOpenFileName(
-        self, "QFileDialog.getOpenFileName()", "", "Loops Files (*.json)", options=options)
-    if fileName:
-        # print(fileName)
-        parseJSON(fileName)
+    return file_path
 
-    os.chdir('../../')
+
+def load_loop(ui, looper: Looper) -> bool:
+    file_path = open_file_dialog(ui)
+    if file_path:
+        looper.load_loop(file_path)
+        return True
+    # The user canceled the file dialog
+    return False
 
 
 def parseJSON(fileName) -> object:

@@ -1,22 +1,13 @@
+from audnauseum.data_models.player import Player
 from audnauseum.data_models.loop import Loop
+from audnauseum.data_models.track import Track
 from audnauseum.data_models.complex_decoder import ComplexDecoder
 from audnauseum.data_models.recorder import Recorder
 from transitions import Machine
 from bullet import Bullet
 import os
-import ntpath
 import enum
 import json
-
-# import ntpath
-
-# import argparse
-# import tempfile
-# import queue
-# import json
-
-
-# from data_models.track import Track
 
 
 class LooperStates(enum.Enum):
@@ -44,8 +35,13 @@ class Looper:
                                 audio cursor is at some other point than 0
     """
 
+    loop: Loop
+    player: Player
+
     transitions = [
         # idle state transitions
+        {'trigger': 'play', 'source': LooperStates.IDLE,
+         'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'load_loop', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_loop'},
         {'trigger': 'add_track', 'source': LooperStates.IDLE,
@@ -72,7 +68,7 @@ class Looper:
         {'trigger': 'record', 'source': LooperStates.LOADED,
          'dest': LooperStates.PLAYING_AND_RECORDING},
         {'trigger': 'play', 'source': LooperStates.LOADED,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'metronome', 'source': LooperStates.LOADED,
          'dest': 'None'},  # Not a transition
         {'trigger': 'metronome_settings', 'source': LooperStates.LOADED,
@@ -84,9 +80,9 @@ class Looper:
 
         # recording state transitions
         {'trigger': 'record', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording', 'after': 'play_tracks'},
         {'trigger': 'play', 'source': LooperStates.RECORDING,
-            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording', 'after': 'play_tracks'},
         {'trigger': 'pause', 'source': LooperStates.RECORDING,
             'dest': LooperStates.PAUSED, 'before': 'stop_recording'},
         {'trigger': 'stop', 'source': LooperStates.RECORDING,
@@ -101,9 +97,9 @@ class Looper:
         # playing state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING,
          'dest': LooperStates.PLAYING_AND_RECORDING},
-        {'trigger': 'pause', 'source': LooperStates.PLAYING,
+        {'trigger': 'pause', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
             'dest': LooperStates.PAUSED},
-        {'trigger': 'stop', 'source': LooperStates.PLAYING,
+        {'trigger': 'stop', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
             'dest': LooperStates.LOADED},
         {'trigger': 'metronome', 'source': LooperStates.PLAYING,
          'dest': 'None'},  # Not a transition
@@ -114,9 +110,9 @@ class Looper:
 
         # playing_and_recording state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PAUSED},
         {'trigger': 'stop', 'source': LooperStates.PLAYING_AND_RECORDING,
@@ -132,9 +128,9 @@ class Looper:
         {'trigger': 'record', 'source': LooperStates.PAUSED,
          'dest': LooperStates.PLAYING_AND_RECORDING},
         {'trigger': 'play', 'source': LooperStates.PAUSED,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'pause', 'source': LooperStates.PAUSED,
-            'dest': LooperStates.PLAYING},
+            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'stop', 'source': LooperStates.PAUSED,
             'dest': LooperStates.LOADED},
         {'trigger': 'metronome', 'source': LooperStates.PAUSED,
@@ -157,7 +153,9 @@ class Looper:
             self.loop = Loop()
         else:
             self.loop = loop
+
         self.recorder = None
+        self.player = Player()
 
     def load_loop(self, file_path):
         try:
@@ -189,7 +187,7 @@ class Looper:
         """
         if args:
             # Print state only when UI button is pressed (i.e. not tests)
-            print(f'Current State: {self.state}')
+            print(f'{self.state=}')
 
     def select_track(self):
         """Displays a list of audio files to import"""
@@ -214,22 +212,26 @@ class Looper:
         # hardcoded True for testing
         return True
 
-    def play_tracks(self, audioCursor):
-        '''Finds the correct point in the numpy arrays of the tracks 
-        and plays them. Should be used in playing and playing_and_recording 
+    def play_tracks(self, audio_cursor):
+        '''Finds the correct point in the numpy arrays of the tracks
+        and plays them. Should be used in playing and playing_and_recording
         states.
         '''
-        # TODO-DAVE
-        pass
+        print('play_tracks')
+        self.player.play(self.loop)
 
-    def start_recording(self):
+    def stop_playing(self):
+        """Stops the current playing output"""
+        print('stop_playing')
+        self.player.stop()
+
+    def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
         if self.recorder is not None:
             self.recorder = None
-            
-        if(self.loop.file_path):
-            directory = ntpath.splittext(
-                ntpath.basename(self.loop.file_path))[0]
+        if self.loop.file_path:
+            directory = os.path.splittext(
+                os.path.basename(self.loop.file_path))[0]
             self.recorder = Recorder(directory=directory,
                                      track_counter=self.loop.track_count)
         else:
@@ -241,7 +243,7 @@ class Looper:
 
     @property
     def has_loaded(self):
-        '''Used for conditional transitions where a file must 
+        '''Used for conditional transitions where a file must
         successfully be loaded.
         Returns true if loading a track was successful
         '''
@@ -264,38 +266,38 @@ class Looper:
 
     def metronome_volume_inc(self):
         '''Increase Volume of metronome'''
-        if(self.loop.met.volume < 1):
+        if self.loop.met.volume < 1:
             self.loop.met.volume += 0.01
             return True
         return False
 
     def metronome_volume_dec(self):
         '''Decrease volume of metronome'''
-        if(self.loop.met.volume > 0):
+        if self.loop.met.volume > 0:
             self.loop.met.volume -= 1
             return True
         return False
 
     def metronome_set_bpm(self, bpm):
-        if(bpm > 0 and bpm < 300):
+        if bpm > 0 and bpm < 300:
             self.loop.met.bpm = int(bpm)
             return True
         return False
 
     def metronome_bpm_inc(self):
-        if(bpm < 300):
+        if self.loop.met.bpm < 300:
             self.loop.met.bpm += 1
             return True
         return False
 
     def metronome_bpm_dec(self):
-        if(bpm > 0):
+        if self.loop.met.bpm > 0:
             self.loop.met.bpm -= 1
             return True
         return False
 
     def metronome_set_beats(self, beats):
-        if(beats > 0):
+        if beats > 0:
             self.loop.met.beats = int(beats)
             return True
         return False
@@ -305,7 +307,7 @@ class Looper:
         return True
 
     def metronome_beats_dec(self):
-        if(self.loop.met.beats > 1):
+        if self.loop.met.beats > 1:
             self.loop.met.beats -= 1
             return True
         return False
@@ -319,45 +321,44 @@ class Looper:
 
     # Loop Effects controls
     def set_volume(self, volume):
-        if(volume >= 0 and volume <= 1):
+        if volume >= 0 and volume <= 1:
             self.loop.fx.volume = volume
             return True
         return False
 
     def volume_inc(self):
-        if(self.loop.fx.volume <= 0.99):
+        if self.loop.fx.volume <= 0.99:
             self.loop.fx.volume += 0.01
             return True
         return False
 
     def volume_dec(self):
-        if(self.loop.fx.volume >= 0.01):
+        if self.loop.fx.volume >= 0.01:
             self.loop.fx.volume -= 0.01
             return True
         return False
 
     def set_pan(self, pan):
-        if(pan >= 0 and pan <= 1):
+        if pan >= 0 and pan <= 1:
             self.loop.fx.pitch_adjust = pan
             return True
         return False
 
     def pan_inc(self):
-        if(self.loop.fx.pan <= 0.99):
+        if self.loop.fx.pan <= 0.99:
             self.loop.fx.pan += 0.01
             return True
         return False
 
     def pan_dec(self):
-        if(self.loop.fx.pan >= 0.01):
+        if self.loop.fx.pan >= 0.01:
             self.loop.fx.pan -= 0.01
             return True
         return False
 
     # Track controls
     def create_track(self, audio_file):
-        t = Track(audio_file)
-        return t
+        return Track(audio_file)
 
     def add_track(self, track):
         self.loop.append(track)
@@ -366,28 +367,28 @@ class Looper:
         track.beat_length = beat_length
 
     def calc_track_bpm(self, track):
-        track.bpm = track.beat_length/track.ms_length * 60000
+        track.bpm = track.beat_length / track.ms_length * 60000
 
     def track_set_volume(self, track, volume):
-        if(volume >= 0 and volume <= 1):
+        if volume >= 0 and volume <= 1:
             track.fx.volume = volume
             return True
         return False
 
     def track_volume_inc(self, track):
-        if(track.fx.volume <= 0.99):
+        if track.fx.volume <= 0.99:
             track.fx.volume += 0.01
             return True
         return False
 
     def track_volume_dec(self, track):
-        if(track.fx.volume >= 0.01):
+        if track.fx.volume >= 0.01:
             track.fx.volume -= 0.01
             return True
         return False
 
     def track_set_pan(self, track, pan):
-        if(pan >= 0 and pan <= 1):
+        if pan >= 0 and pan <= 1:
             track.fx.pan = pan
             return True
         return False
@@ -410,35 +411,18 @@ class Looper:
 
     def track_slip_inc(self, track):
         '''increments by 1 ms'''
-        if(int((track.fx.slip + track.samplerate/1000)) < track.samples):
+        if int(track.fx.slip + track.samplerate/1000) < track.samples:
             track.fx.slip += track.samplerate/1000
         else:
             track.fx.slip = 0  # We hit the end of the file, so start over
         return True
 
     def track_slip_dec(self, track):
-        '''decriments by 1 ms'''
-        if(int((track.fx.slip - track.samplerate/1000)) > 0):
+        '''decrements by 1 ms'''
+        if int(track.fx.slip - track.samplerate/1000) > 0:
             track.fx.slip -= track.samplerate/1000
         else:
             track.fx.slip = track.samples - track.samplerate/1000
             # We slipped back from the beginning of the file, so go to end, and
             # back up 1ms
         return True
-
-
-if __name__ == "__main__":
-    looper = Looper()
-    print(f"Initial State: {looper.state}")
-    looper.add_track()
-    print(f"Add Track changed state to {looper.state}")
-    looper.record()
-    print(f"Record changed state to {looper.state}")
-    looper.pause()
-    print(f"Pause changed state to {looper.state}")
-    looper.play()
-    print(f"Play changed state to {looper.state}")
-    looper.stop()
-    print(f"Stop changed state to {looper.state}")
-    looper.remove_track()
-    print(f"Remove track changed state to {looper.state}")

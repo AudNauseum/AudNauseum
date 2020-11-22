@@ -1,13 +1,19 @@
 import soundfile as sf
 import json
-import ntpath
 from .fx_settings import FxSettings
-from .complex_encoder import ComplexEncoder
 
 
 class Track(object):
     '''A track represents an audio stream and a set of
     parameters that allow different tracks to sync together'''
+
+    _samples: int
+    _samplerate: int
+    _file_name: str
+    _beats: int
+    _ms_length: float
+    _bpm: float
+    _fx: FxSettings
 
     def __init__(self, file_name, beats=None, fx=None):
         file = sf.SoundFile(file_name)
@@ -16,11 +22,11 @@ class Track(object):
         self._file_name = file_name
         self._beats: int = beats
         self._ms_length: float = self.samples / self.samplerate * 1000
-        if(self._ms_length != 0):
+        if self._ms_length != 0:
             self._bpm: float = self.beats / self._ms_length * 60000
         else:
             self._bpm = None
-        if(fx):
+        if fx:
             self._fx = fx
         else:
             self._fx = FxSettings()
@@ -87,7 +93,7 @@ class Track(object):
 
     @ms_length.setter
     def ms_length(self, val):
-        self._ms_length
+        self._ms_length = val
 
     @property
     def fx(self):
