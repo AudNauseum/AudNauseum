@@ -16,9 +16,11 @@ class Loop(object):
     _tracks: List[Track]
     _audio_cursor: int
 
-    def __init__(self, file_path=None, tracks=[], met=None, fx=None,
+    def __init__(self, file_path=None, tracks=None, met=None, fx=None,
                  audio_cursor=0):
         self._file_path = file_path
+        if tracks is None:
+            tracks = []
         self._tracks = tracks  # List of Tracks in the loop
         if met:
             self._met = met  # Initializes a metronome
