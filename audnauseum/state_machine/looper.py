@@ -42,7 +42,7 @@ class Looper:
 
     transitions = [
         # idle state transitions
-        {'trigger': 'load_loop', 'source': LooperStates.IDLE,
+        {'trigger': 'load', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_loop'},
         {'trigger': 'add_track', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_track'},
@@ -157,7 +157,7 @@ class Looper:
         self.recorder = None
         self.player = Player()
 
-    def load_loop(self, file_path):
+    def load_loop(self, file_path: str):
         try:
             json_data = self.read_json(file_path)
             self.loop = json.loads(json_data, cls=ComplexDecoder)
@@ -185,9 +185,7 @@ class Looper:
         a state change is triggered by clicking a UI button but not
         passed in when triggered directly (i.e. in tests).
         """
-        if args:
-            # Print state only when UI button is pressed (i.e. not tests)
-            print(f'{self.state}')
+        print(f'{self.state}')
 
     def select_track(self):
         """Displays a list of audio files to import"""
@@ -217,7 +215,6 @@ class Looper:
         and plays them. Should be used in playing and playing_and_recording
         states.
         '''
-        print('play_tracks')
         self.player.play(self.loop)
 
     def stop_playing(self):
