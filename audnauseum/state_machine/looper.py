@@ -37,6 +37,8 @@ class Looper:
 
     loop: Loop
     player: Player
+    machine: Machine
+    recorder: Recorder
 
     transitions = [
         # idle state transitions
@@ -228,7 +230,7 @@ class Looper:
         if self.recorder is not None:
             self.recorder = None
         if self.loop.file_path:
-            directory = os.path.splittext(
+            directory = os.path.splitext(
                 os.path.basename(self.loop.file_path))[0]
             self.recorder = Recorder(directory=directory,
                                      track_counter=self.loop.track_count)
