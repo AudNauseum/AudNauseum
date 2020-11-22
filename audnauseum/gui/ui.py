@@ -123,11 +123,13 @@ def open_file_dialog(ui) -> str:
 def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
-        looper.load_loop(file_path)
+        looper.load(file_path)
         return True
     # The user canceled the file dialog
     return False
 
+
+# TODO: Check if these functions are necessary anymore (JSON parsing now done in Looper class)
 
 def parseJSON(fileName) -> object:
     # read file
