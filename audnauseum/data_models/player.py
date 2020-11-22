@@ -62,10 +62,10 @@ class Player:
     def file_reading_thread(self, track: Track):
         """Write data from file to queue."""
         timeout = self.blocksize * self.queue_size / track.samplerate
-        print(f'{track.file_name=}')
+        print(f'{track.file_name}')
         with sf.SoundFile(track.file_name) as file:
-            print(f'{file.samplerate=}')
-            print(f'{file.frames=}')
+            print(f'{file.samplerate}')
+            print(f'{file.frames}')
             for block in file.blocks(self.blocksize):
                 if not self.playing:
                     break

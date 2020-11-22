@@ -40,8 +40,6 @@ class Looper:
 
     transitions = [
         # idle state transitions
-        {'trigger': 'play', 'source': LooperStates.IDLE,
-         'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'load_loop', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_loop'},
         {'trigger': 'add_track', 'source': LooperStates.IDLE,
@@ -187,7 +185,7 @@ class Looper:
         """
         if args:
             # Print state only when UI button is pressed (i.e. not tests)
-            print(f'{self.state=}')
+            print(f'{self.state}')
 
     def select_track(self):
         """Displays a list of audio files to import"""
