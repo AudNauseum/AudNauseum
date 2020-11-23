@@ -22,7 +22,7 @@ class Track(object):
         self._file_name = file_name
         self._beats: int = beats
         self._ms_length: float = self.samples / self.samplerate * 1000
-        if self._ms_length != 0:
+        if self._ms_length != 0 and self.beats is not None:
             self._bpm: float = self.beats / self._ms_length * 60000
         else:
             self._bpm = None
