@@ -195,7 +195,7 @@ class Looper:
             track = cli.launch()
             return track
 
-    def load_track(self):
+    def load_track(self, *args):
         '''Load a Track into the looper.
 
         Appends the track to the track_list, reads Track
@@ -204,7 +204,7 @@ class Looper:
         # TODO
         pass
 
-    def unload_track(self):
+    def unload_track(self, *args):
         # TODO - write code to unload a track from a loop
         # should call a method from Loop object
         # hardcoded True for testing
@@ -217,7 +217,7 @@ class Looper:
         '''
         self.player.play(self.loop)
 
-    def stop_playing(self):
+    def stop_playing(self, *args):
         """Stops the current playing output"""
         print('stop_playing')
         self.player.stop()
@@ -235,7 +235,7 @@ class Looper:
             self.recorder = Recorder(track_counter=self.loop.track_count)
         self.recorder.on_rec()
 
-    def stop_recording(self):
+    def stop_recording(self, *args):
         self.recorder.on_stop()
 
     @property

@@ -1,0 +1,57 @@
+{
+    "__type__": "Loop",
+    "file_path": "/Users/steve/Projects/Python/AudNauseum/resources/json/cd_test3.json",
+    "tracks": [
+        {
+            "__type__": "Track",
+            "beats": 20,
+            "bpm": 8.763353845058427,
+            "file_name": "resources/recordings/Soft_Piano_Music.wav",
+            "ms_length": 136933.875,
+            "samples": 2190942,
+            "samplerate": 16000,
+            "fx": {
+                "__type__": "FxSettings",
+                "volume": 1.0,
+                "pan": 0.5,
+                "is_reversed": false,
+                "pitch_adjust": 0,
+                "slip": 0
+            }
+        },
+        {
+            "__type__": "Track",
+            "beats": 20,
+            "bpm": 8.763353845058427,
+            "file_name": "resources/recordings/Soft_Piano_Music.wav",
+            "ms_length": 136933.875,
+            "samples": 2190942,
+            "samplerate": 16000,
+            "fx": {
+                "__type__": "FxSettings",
+                "volume": 1.0,
+                "pan": 0.5,
+                "is_reversed": false,
+                "pitch_adjust": 0,
+                "slip": 0
+            }
+        }
+    ],
+    "met": {
+        "__type__": "Metronome",
+        "bpm": null,
+        "beats": null,
+        "volume": 0.5,
+        "count_in": false,
+        "is_on": false
+    },
+    "fx": {
+        "__type__": "FxSettings",
+        "volume": 1.0,
+        "pan": 0.5,
+        "is_reversed": false,
+        "pitch_adjust": 0,
+        "slip": 0
+    },
+    "audio_cursor": 0
+}
