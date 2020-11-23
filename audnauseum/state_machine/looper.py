@@ -11,6 +11,7 @@ import json
 
 
 class LooperStates(enum.Enum):
+    '''The list of possible states AudNauseum can be in'''
     IDLE = 0
     LOADED = 1
     PLAYING = 2
@@ -35,6 +36,7 @@ class Looper:
                                 audio cursor is at some other point than 0
     """
 
+    #Type Hints
     loop: Loop
     player: Player
     machine: Machine
@@ -167,10 +169,10 @@ class Looper:
                 f'Exception while loading data from {file_path}\nMessage: {e}')
             return False
 
-    def write_loop(self, file_path):
+    def write_loop(self, file_path: str):
         self.loop.write_json(file_path)
 
-    def read_json(self, file_path):
+    def read_json(self, file_path: str):
         with open(file_path, 'r') as f:
             try:
                 return f.read()
@@ -185,7 +187,7 @@ class Looper:
         a state change is triggered by clicking a UI button but not
         passed in when triggered directly (i.e. in tests).
         """
-        print(f'{self.state}')
+        print(f'{self.state=}')
 
     def select_track(self):
         """Displays a list of audio files to import"""
@@ -210,14 +212,14 @@ class Looper:
         # hardcoded True for testing
         return True
 
-    def play_tracks(self, audio_cursor):
+    def play_tracks(self, *args):
         '''Finds the correct point in the numpy arrays of the tracks
         and plays them. Should be used in playing and playing_and_recording
         states.
         '''
         self.player.play(self.loop)
 
-    def stop_playing(self):
+    def stop_playing(self, *args):
         """Stops the current playing output"""
         print('stop_playing')
         self.player.stop()
@@ -235,8 +237,11 @@ class Looper:
             self.recorder = Recorder(track_counter=self.loop.track_count)
         self.recorder.on_rec()
 
-    def stop_recording(self):
-        self.recorder.on_stop()
+    def stop_recording(self, *args):
+        '''Creates a Track from recording, appends to loop'''
+        t = Track(self.recorder.on_stop())
+        self.loop.tracks.append(t)
+        
 
     @property
     def has_loaded(self):
