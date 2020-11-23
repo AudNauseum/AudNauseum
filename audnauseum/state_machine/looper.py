@@ -59,7 +59,7 @@ class Looper:
 
         # loaded state transitions
         {'trigger': 'record', 'source': LooperStates.LOADED,
-         'dest': LooperStates.PLAYING_AND_RECORDING},
+         'dest': LooperStates.PLAYING_AND_RECORDING, 'after': 'start_playing_and_recording'},
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
@@ -67,8 +67,6 @@ class Looper:
          'conditions': 'no_tracks'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'unload_track'},
-        {'trigger': 'record', 'source': LooperStates.LOADED,
-         'dest': LooperStates.PLAYING_AND_RECORDING},
         {'trigger': 'play', 'source': LooperStates.LOADED,
             'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'metronome', 'source': LooperStates.LOADED,
@@ -112,13 +110,13 @@ class Looper:
 
         # playing_and_recording state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PAUSED},
         {'trigger': 'stop', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.LOADED},
+            'dest': LooperStates.LOADED, 'before': 'stop_playing_and_recording'},
         {'trigger': 'metronome', 'source': LooperStates.PLAYING_AND_RECORDING,
          'dest': 'None'},  # Not a transition
         {'trigger': 'global_fx', 'source': LooperStates.PLAYING_AND_RECORDING,
@@ -241,7 +239,14 @@ class Looper:
         '''Creates a Track from recording, appends to loop'''
         t = Track(self.recorder.on_stop())
         self.loop.tracks.append(t)
-        
+    
+    def start_playing_and_recording(self, *args):
+        self.start_recording()
+        self.play_tracks()
+    
+    def stop_playing_and_recording(self, *args):
+        self.stop_playing()
+        self.stop_recording()
 
     @property
     def has_loaded(self):
