@@ -19,7 +19,6 @@ def connect_all_inputs(ui, looper: Looper):
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
     connect_volume_dial(ui, looper)
-    connect_track_select(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
@@ -40,8 +39,6 @@ def connect_track_control_buttons(ui, looper: Looper):
     """
     ui.pushButton_add_track.clicked.connect(lambda: whichbtn('add'))
     ui.pushButton_rem_track.clicked.connect(lambda: whichbtn('remove'))
-    ui.pushButton_new_track.clicked.connect(lambda: whichbtn('new'))
-    ui.pushButton_solo_track.clicked.connect(lambda: whichbtn('solo'))
 
 
 def connect_fx_buttons(ui, looper: Looper):
@@ -67,13 +64,6 @@ def connect_volume_dial(ui, looper: Looper):
     Add listener for volume control
     """
     ui.dial_volume.valueChanged.connect(lambda: dial_value(ui))
-
-
-def connect_track_select(ui, looper: Looper):
-    """TRACK SELECT
-    Add listener to get value of track select
-    """
-    ui.spinBox_context.valueChanged.connect(lambda: spinbox_value(ui))
 
 
 def initialize_lcd_display(ui, looper: Looper):
