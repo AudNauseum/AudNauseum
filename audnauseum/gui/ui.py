@@ -135,7 +135,7 @@ def save_file_dialog(ui) -> str:
     options |= QFileDialog.DontUseNativeDialog
 
     file_path, _ = QFileDialog.getSaveFileName(
-        ui, "QFileDialog.getSaveFileName()", "", "Loops Files (*.json)", options=options)
+        ui, "Save loop file as", "", "Loops Files (*.json)", options=options)
 
     return file_path
 
