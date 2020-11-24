@@ -26,8 +26,10 @@ class Recorder(object):
         self.create_stream()
         self.recording = self.previously_recording = False
         self.audio_q = queue.Queue()
+        self.current_file: str
 
-    def create_stream(self, samplerate=44100, device=[0, 1], channels=1):
+#####TODO channels needs to inherit from device settings.  Currently hardwired @ 2
+    def create_stream(self, samplerate=44100, device=[0, 1], channels=2):
         if self.stream is not None:
             self.stream.close()
         self.stream = sd.InputStream(samplerate=samplerate,
@@ -64,6 +66,7 @@ class Recorder(object):
         filename = self.directory + '/track_' + \
             str(self.track_counter).zfill(4) + '.wav'
         self.track_counter += 1
+        self.current_file = filename
 
         if self.audio_q.qsize() != 0:
             print('WARNING: Queue not empty!')
@@ -84,6 +87,8 @@ class Recorder(object):
     def on_stop(self, *args):
         self.recording = False
         self.wait_for_thread()
+        print(f'{self.current_file=}')
+        return self.current_file
 
     def wait_for_thread(self):
         self.after(10, self._wait_for_thread)

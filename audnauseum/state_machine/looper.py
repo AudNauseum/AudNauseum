@@ -11,6 +11,7 @@ import json
 
 
 class LooperStates(enum.Enum):
+    '''The list of possible states AudNauseum can be in'''
     IDLE = 0
     LOADED = 1
     PLAYING = 2
@@ -35,6 +36,7 @@ class Looper:
                                 audio cursor is at some other point than 0
     """
 
+    #Type Hints
     loop: Loop
     player: Player
     machine: Machine
@@ -57,7 +59,7 @@ class Looper:
 
         # loaded state transitions
         {'trigger': 'record', 'source': LooperStates.LOADED,
-         'dest': LooperStates.PLAYING_AND_RECORDING},
+         'dest': LooperStates.PLAYING_AND_RECORDING, 'after': 'start_playing_and_recording'},
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
@@ -65,8 +67,6 @@ class Looper:
          'conditions': 'no_tracks'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'unload_track'},
-        {'trigger': 'record', 'source': LooperStates.LOADED,
-         'dest': LooperStates.PLAYING_AND_RECORDING},
         {'trigger': 'play', 'source': LooperStates.LOADED,
             'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'metronome', 'source': LooperStates.LOADED,
@@ -110,13 +110,13 @@ class Looper:
 
         # playing_and_recording state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
+            'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PAUSED},
         {'trigger': 'stop', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.LOADED},
+            'dest': LooperStates.LOADED, 'before': 'stop_playing_and_recording'},
         {'trigger': 'metronome', 'source': LooperStates.PLAYING_AND_RECORDING,
          'dest': 'None'},  # Not a transition
         {'trigger': 'global_fx', 'source': LooperStates.PLAYING_AND_RECORDING,
@@ -167,10 +167,10 @@ class Looper:
                 f'Exception while loading data from {file_path}\nMessage: {e}')
             return False
 
-    def write_loop(self, file_path):
+    def write_loop(self, file_path: str):
         self.loop.write_json(file_path)
 
-    def read_json(self, file_path):
+    def read_json(self, file_path: str):
         with open(file_path, 'r') as f:
             try:
                 return f.read()
@@ -185,7 +185,7 @@ class Looper:
         a state change is triggered by clicking a UI button but not
         passed in when triggered directly (i.e. in tests).
         """
-        print(f'{self.state}')
+        print(f'{self.state=}')
 
     def select_track(self):
         """Displays a list of audio files to import"""
@@ -210,7 +210,7 @@ class Looper:
         # hardcoded True for testing
         return True
 
-    def play_tracks(self, audio_cursor):
+    def play_tracks(self, *args):
         '''Finds the correct point in the numpy arrays of the tracks
         and plays them. Should be used in playing and playing_and_recording
         states.
@@ -236,7 +236,17 @@ class Looper:
         self.recorder.on_rec()
 
     def stop_recording(self, *args):
-        self.recorder.on_stop()
+        '''Creates a Track from recording, appends to loop'''
+        t = Track(self.recorder.on_stop())
+        self.loop.tracks.append(t)
+    
+    def start_playing_and_recording(self, *args):
+        self.start_recording()
+        self.play_tracks()
+    
+    def stop_playing_and_recording(self, *args):
+        self.stop_playing()
+        self.stop_recording()
 
     @property
     def has_loaded(self):
