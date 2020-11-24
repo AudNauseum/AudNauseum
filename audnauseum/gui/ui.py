@@ -22,6 +22,7 @@ def connect_all_inputs(ui, looper: Looper):
     connect_track_select(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
+    connect_save_loop(ui, looper)
 
 
 def connect_transport_control_buttons(ui, looper: Looper):
@@ -88,6 +89,13 @@ def connect_load_loop(ui, looper: Looper):
     ui.pushButton_load_file.clicked.connect(lambda: load_loop(ui, looper))
 
 
+def connect_save_loop(ui, looper: Looper):
+    """SAVE LOOP
+    Add listener for save of loop JSON file
+    """
+    ui.pushButton_save_file.clicked.connect(lambda: save_loop(ui, looper))
+
+
 def whichbtn(_str):
     print("clicked button is", _str)
 
@@ -120,12 +128,33 @@ def open_file_dialog(ui) -> str:
     return file_path
 
 
+# Modified from source code example: https://pythonspot.com/pyqt5-file-dialog/
+
+def save_file_dialog(ui) -> str:
+    options = QFileDialog.Options()
+    options |= QFileDialog.DontUseNativeDialog
+
+    file_path, _ = QFileDialog.getSaveFileName(
+        ui, "Save loop file as", "", "Loops Files (*.json)", options=options)
+
+    return file_path
+
+
 def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)
         return True
     # The user canceled the file dialog
+    return False
+
+
+def save_loop(ui, looper: Looper) -> bool:
+    file_path = save_file_dialog(ui)
+    if file_path:
+        looper.write_loop(file_path)
+        return True
+    # The user canceled the save dialog
     return False
 
 
