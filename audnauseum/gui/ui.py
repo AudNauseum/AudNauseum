@@ -1,6 +1,7 @@
 from audnauseum.state_machine.looper import Looper
 import time
 import json
+from shutil import copyfile
 from pathlib import Path
 
 from PyQt5.QtWidgets import QFileDialog
@@ -133,6 +134,7 @@ def save_file_dialog(ui) -> str:
 def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
+        copyfile(file_path, './resources/temp/temp.json')
         looper.load(file_path)
         return True
     # The user canceled the file dialog
