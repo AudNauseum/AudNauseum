@@ -6,7 +6,7 @@ from os import path
 from shutil import copyfile
 from pathlib import Path
 
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5 import uic
 
 
@@ -157,16 +157,21 @@ def save_loop(ui, looper: Looper) -> bool:
 
 
 def add_track(ui, looper: Looper) -> bool:
-    options = QFileDialog.Options()
-    options |= QFileDialog.DontUseNativeDialog
 
-    file_path, _ = QFileDialog.getOpenFileName(
-        ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+    if path.exists("./resources/temp/temp.json"):
 
-    if file_path:
-        return True
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
 
-    # The user canceled the add track dialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+
+        if file_path:
+            return True
+
+        # The user canceled the add track dialog
+        return False
+    show_popup(ui)
     return False
 
 
@@ -208,3 +213,11 @@ def getTrackData(track):
     print(track['bpm'])
 
     return (track['file_name'], track['bpm'])
+
+
+def show_popup(ui):
+    msg = QMessageBox()
+    msg.setWindowTitle("Error")
+    msg.setText("A loop must be loaded.")
+
+    x = msg.exec_()
