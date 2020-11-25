@@ -134,8 +134,10 @@ def save_file_dialog(ui) -> str:
 def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
-        copyfile(file_path, './resources/temp/temp.json')
-        looper.load(file_path)
+        # Makes a copy of loop JSON file in temp directory & loads it.
+        temp_path = "./resources/temp/temp.json"
+        copyfile(file_path, temp_path)
+        looper.load(temp_path)
         return True
     # The user canceled the file dialog
     return False
