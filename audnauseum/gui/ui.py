@@ -1,6 +1,8 @@
 from audnauseum.state_machine.looper import Looper
 import time
+import os
 import json
+from os import path
 from shutil import copyfile
 from pathlib import Path
 
@@ -38,8 +40,8 @@ def connect_track_control_buttons(ui, looper: Looper):
     """TRACK CONTROL
     Add listeners to each button in track controls group
     """
-    ui.pushButton_add_track.clicked.connect(lambda: whichbtn('add'))
-    ui.pushButton_rem_track.clicked.connect(lambda: whichbtn('remove'))
+    ui.pushButton_add_track.clicked.connect(lambda: add_track(ui, looper))
+    ui.pushButton_rem_track.clicked.connect(lambda: rem_track(ui, looper))
 
 
 def connect_fx_buttons(ui, looper: Looper):
@@ -147,9 +149,29 @@ def save_loop(ui, looper: Looper) -> bool:
     file_path = save_file_dialog(ui)
     if file_path:
         looper.write_loop(file_path)
+        # Delete temp working file (temp.json) after writing to file.
+        os.remove("./resources/temp/temp.json")
         return True
     # The user canceled the save dialog
     return False
+
+
+def add_track(ui, looper: Looper) -> bool:
+    options = QFileDialog.Options()
+    options |= QFileDialog.DontUseNativeDialog
+
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+
+    if file_path:
+        return True
+
+    # The user canceled the add track dialog
+    return False
+
+
+def rem_track(ui, looper: Looper) -> bool:
+    pass
 
 
 # TODO: Check if these functions are necessary anymore (JSON parsing now done in Looper class)
