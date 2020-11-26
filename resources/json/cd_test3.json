@@ -35,6 +35,23 @@
                 "pitch_adjust": 0,
                 "slip": 0
             }
+        },
+        {
+            "__type__": "Track",
+            "beats": null,
+            "bpm": null,
+            "file_name": "resources/recordings/Soft_Piano_Music.wav",
+            "ms_length": 136933.875,
+            "samples": 2190942,
+            "samplerate": 16000,
+            "fx": {
+                "__type__": "FxSettings",
+                "volume": 1.0,
+                "pan": 0.5,
+                "is_reversed": false,
+                "pitch_adjust": 0,
+                "slip": 0
+            }
         }
     ],
     "met": {

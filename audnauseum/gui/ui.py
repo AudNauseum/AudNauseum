@@ -158,7 +158,6 @@ def add_track(ui, looper: Looper) -> bool:
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-
         file_path, _ = QFileDialog.getOpenFileName(
             ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 

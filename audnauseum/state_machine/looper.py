@@ -202,14 +202,15 @@ class Looper:
         Appends the track to the track_list, reads Track
         arguments and generates a numpy array that can be used by sounddevices.
         '''
-        # TODO
-        pass
+        x = Track(file_path)
+        self.loop.append(x)
 
     def unload_track(self, file_path: str):
-        # TODO - write code to unload a track from a loop
-        # should call a method from Loop object
-        # hardcoded True for testing
-        print('here')
+        '''Remove a Track from the looper.
+
+        Removes the track from the track_list by matching first instance of the
+        pass file_path that matches.
+        '''
         self.loop.remove(file_path)
 
     def play_tracks(self, *args):
