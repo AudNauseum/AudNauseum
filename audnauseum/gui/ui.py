@@ -151,22 +151,22 @@ def save_loop(ui, looper: Looper) -> bool:
 
 def add_track(ui, looper: Looper) -> bool:
 
-    if not looper.state == LooperStates.IDLE:
+    # if not looper.state == LooperStates.IDLE:
 
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
+    options = QFileDialog.Options()
+    options |= QFileDialog.DontUseNativeDialog
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 
-        if file_path:
-            rel_path = get_rel_path(file_path)
-            looper.load_track(rel_path)
-            return True
+    if file_path:
+        rel_path = get_rel_path(file_path)
+        looper.add_track(rel_path)
+        return True
 
         # The user canceled the add track dialog
-        return False
-    show_popup(ui)
     return False
+    # show_popup(ui)
+    # return False
 
 
 def rem_track(ui, looper: Looper) -> bool:
@@ -179,7 +179,7 @@ def rem_track(ui, looper: Looper) -> bool:
 
         if file_path:
             rel_path = get_rel_path(file_path)
-            looper.unload_track(rel_path)
+            looper.remove_track(rel_path)
             return True
 
         # The user canceled the add track dialog
