@@ -36,7 +36,7 @@ class Looper:
                                 audio cursor is at some other point than 0
     """
 
-    #Type Hints
+    # Type Hints
     loop: Loop
     player: Player
     machine: Machine
@@ -63,7 +63,7 @@ class Looper:
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
-         'dest': LooperStates.IDLE, 'after': 'unload_track',
+         'dest': LooperStates.IDLE, 'before': 'unload_track',
          'conditions': 'no_tracks'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'unload_track'},
@@ -239,11 +239,11 @@ class Looper:
         '''Creates a Track from recording, appends to loop'''
         t = Track(self.recorder.on_stop())
         self.loop.tracks.append(t)
-    
+
     def start_playing_and_recording(self, *args):
         self.start_recording()
         self.play_tracks()
-    
+
     def stop_playing_and_recording(self, *args):
         self.stop_playing()
         self.stop_recording()
@@ -263,7 +263,7 @@ class Looper:
         '''Used for conditional transitions where a Loop must be empty.
         Returns true if the track_list is empty
         '''
-        return self.loop.track_count == 0
+        return len(self.loop.tracks) == 0
 
     # Metronome controls
     def metronome_toggle(self):
