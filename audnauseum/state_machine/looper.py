@@ -202,7 +202,7 @@ class Looper:
         Appends the track to the track_list, reads Track
         arguments and generates a numpy array that can be used by sounddevices.
         '''
-        x = Track(file_path)
+        x = Track(file_path, beats=20)
         self.loop.append(x)
 
     def unload_track(self, file_path: str):
@@ -366,7 +366,15 @@ class Looper:
             return True
         return False
 
+    # TODO  This section may need cleanup, some functions are redundant or exist in seperate Track class
+    # 1. create_track does the same thing as load_track above and is implemented as append track in loop.py
+    # 2. add_track is encapsulated in loop.py and is redundant here
+    # 3. set_track_beat_length may be obselete, this is handled in the Track class and beat_length is not a
+    #    parameter currently used.
+    # 4. calc_track_bpm is accomplished in object creation in Track?  Redundant?
+
     # Track controls
+
     def create_track(self, audio_file):
         return Track(audio_file)
 

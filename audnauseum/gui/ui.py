@@ -1,9 +1,9 @@
-from audnauseum.state_machine.looper import Looper
+from audnauseum.state_machine.looper import Looper, LooperStates
 import time
 import os
 import json
-from os import path
-from shutil import copyfile
+# from os import path
+# from shutil import copyfile
 from pathlib import Path
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -153,8 +153,7 @@ def save_loop(ui, looper: Looper) -> bool:
 
 def add_track(ui, looper: Looper) -> bool:
 
-    # TODO this doesn't do anything really
-    if not looper.state == 'IDLE':
+    if not looper.state == LooperStates.IDLE:
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -174,8 +173,7 @@ def add_track(ui, looper: Looper) -> bool:
 
 def rem_track(ui, looper: Looper) -> bool:
 
-    # TODO this doesn't do anything really
-    if not looper.state == 'IDLE':
+    if not looper.state == LooperStates.IDLE:
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         file_path, _ = QFileDialog.getOpenFileName(
