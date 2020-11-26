@@ -202,6 +202,7 @@ class Looper:
         Appends the track to the track_list, reads Track
         arguments and generates a numpy array that can be used by sounddevices.
         '''
+        # TODO beats are currently hard-coded to be 20 for all new Tracks
         x = Track(file_path, beats=20)
         self.loop.append(x)
 
