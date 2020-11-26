@@ -187,15 +187,6 @@ class Looper:
         """
         print(f'{self.state=}')
 
-    # TODO Marked for deletion, this is from obselete CLI interface.
-    # def select_track(self):
-    #     """Displays a list of audio files to import"""
-    #     tracks = list(os.listdir('resources/recordings'))
-    #     if tracks:
-    #         cli = Bullet(prompt='Choose a Track:', choices=tracks)
-    #         track = cli.launch()
-    #         return track
-
     def load_track(self, file_path: str):
         '''Load a Track into the looper.
 
@@ -267,7 +258,7 @@ class Looper:
         '''Used for conditional transitions where a Loop must be empty.
         Returns true if the track_list is empty
         '''
-        return self.loop.track_count == 0
+        return len(self.loop.tracks) == 0
 
     # Metronome controls
     def metronome_toggle(self):
@@ -367,27 +358,7 @@ class Looper:
             return True
         return False
 
-    # TODO  This section may need cleanup, some functions are redundant or exist in seperate Track class
-    # 1. create_track does the same thing as load_track above and is implemented as append track in loop.py
-    # 2. add_track is encapsulated in loop.py and is redundant here
-    # 3. set_track_beat_length may be obselete, this is handled in the Track class and beat_length is not a
-    #    parameter currently used.
-    # 4. calc_track_bpm is accomplished in object creation in Track?  Redundant?
-
     # Track controls
-
-    def create_track(self, audio_file):
-        return Track(audio_file)
-
-    def add_track(self, track):
-        self.loop.append(track)
-
-    def set_track_beat_length(self, track, beat_length):
-        track.beat_length = beat_length
-
-    def calc_track_bpm(self, track):
-        track.bpm = track.beat_length / track.ms_length * 60000
-
     def track_set_volume(self, track, volume):
         if volume >= 0 and volume <= 1:
             track.fx.volume = volume
