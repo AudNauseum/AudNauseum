@@ -159,7 +159,7 @@ class Looper:
         # Create a default (empty track) loop upon startup & load it
         default_path = './resources/json/default.json'
         self.write_loop(default_path)
-        # self.load_loop(default_path)
+        self.load_loop(default_path)
 
     def load_loop(self, file_path: str):
         try:
@@ -192,10 +192,8 @@ class Looper:
         print(f'{self.state=}')
 
     def load_track(self, file_path: str):
-        '''Load a Track into the looper.
-
-        Appends the track to the track_list, reads Track
-        arguments and generates a numpy array that can be used by sounddevices.
+        '''
+        Load a Track into the looper.
         '''
         # TODO beats are currently hard-coded to be 20 for all new Tracks
         try:
@@ -208,12 +206,9 @@ class Looper:
             return False
 
     def unload_track(self, file_path: str):
-        '''Remove a Track from the looper.
-
-        Removes the track from the track_list by matching first instance of the
-        pass file_path that matches.
         '''
-
+        Remove a Track from the looper.
+        '''
         try:
             self.loop.remove(file_path)
             return True
