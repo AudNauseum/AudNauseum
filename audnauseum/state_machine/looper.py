@@ -36,7 +36,7 @@ class Looper:
                                 audio cursor is at some other point than 0
     """
 
-    #Type Hints
+    # Type Hints
     loop: Loop
     player: Player
     machine: Machine
@@ -187,15 +187,16 @@ class Looper:
         """
         print(f'{self.state=}')
 
-    def select_track(self):
-        """Displays a list of audio files to import"""
-        tracks = list(os.listdir('resources/recordings'))
-        if tracks:
-            cli = Bullet(prompt='Choose a Track:', choices=tracks)
-            track = cli.launch()
-            return track
+    # TODO Marked for deletion, this is from obselete CLI interface.
+    # def select_track(self):
+    #     """Displays a list of audio files to import"""
+    #     tracks = list(os.listdir('resources/recordings'))
+    #     if tracks:
+    #         cli = Bullet(prompt='Choose a Track:', choices=tracks)
+    #         track = cli.launch()
+    #         return track
 
-    def load_track(self, *args):
+    def load_track(self, file_path: str):
         '''Load a Track into the looper.
 
         Appends the track to the track_list, reads Track
@@ -204,11 +205,12 @@ class Looper:
         # TODO
         pass
 
-    def unload_track(self, *args):
+    def unload_track(self, file_path: str):
         # TODO - write code to unload a track from a loop
         # should call a method from Loop object
         # hardcoded True for testing
-        return True
+        print('here')
+        self.loop.remove(file_path)
 
     def play_tracks(self, *args):
         '''Finds the correct point in the numpy arrays of the tracks
@@ -239,11 +241,11 @@ class Looper:
         '''Creates a Track from recording, appends to loop'''
         t = Track(self.recorder.on_stop())
         self.loop.tracks.append(t)
-    
+
     def start_playing_and_recording(self, *args):
         self.start_recording()
         self.play_tracks()
-    
+
     def stop_playing_and_recording(self, *args):
         self.stop_playing()
         self.stop_recording()

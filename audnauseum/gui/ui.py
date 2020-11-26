@@ -136,10 +136,7 @@ def save_file_dialog(ui) -> str:
 def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
-        # Makes a copy of loop JSON file in temp directory & loads it.
-        temp_path = "./resources/temp/temp.json"
-        copyfile(file_path, temp_path)
-        looper.load(temp_path)
+        looper.load(file_path)
         return True
     # The user canceled the file dialog
     return False
@@ -149,8 +146,6 @@ def save_loop(ui, looper: Looper) -> bool:
     file_path = save_file_dialog(ui)
     if file_path:
         looper.write_loop(file_path)
-        # Delete temp working file (temp.json) after writing to file.
-        os.remove("./resources/temp/temp.json")
         return True
     # The user canceled the save dialog
     return False
@@ -167,6 +162,13 @@ def add_track(ui, looper: Looper) -> bool:
             ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
+            # get only file name from full path
+            file_name = file_path.split('/')[-1]
+            # create the relative path for track location
+            rel_path = "resources/recordings/" + file_name
+            # print(file_name)
+            # print(rel_path)
+            looper.load_track(rel_path)
             return True
 
         # The user canceled the add track dialog
@@ -174,9 +176,34 @@ def add_track(ui, looper: Looper) -> bool:
     show_popup(ui)
     return False
 
+# TODO might be better served in looper.py
+
 
 def rem_track(ui, looper: Looper) -> bool:
-    pass
+
+    # If a loop is loaded, allow removing tracks
+    if path.exists("./resources/temp/temp.json"):
+
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+
+        if file_path:
+            # get only file name from full path
+            file_name = file_path.split('/')[-1]
+            # create the relative path for track location
+            rel_path = "resources/recordings/" + file_name
+            # print(file_name)
+            # print(rel_path)
+            looper.unload_track(rel_path)
+            return True
+
+        # The user canceled the add track dialog
+        return False
+    show_popup(ui)
+    return False
 
 
 # TODO: Check if these functions are necessary anymore (JSON parsing now done in Looper class)
@@ -214,10 +241,12 @@ def getTrackData(track):
 
     return (track['file_name'], track['bpm'])
 
+# Modified from example provided:  https://www.youtube.com/watch?v=GkgMTyiLtWk
+
 
 def show_popup(ui):
     msg = QMessageBox()
     msg.setWindowTitle("Error")
     msg.setText("A loop must be loaded.")
 
-    x = msg.exec_()
+    msg.exec_()
