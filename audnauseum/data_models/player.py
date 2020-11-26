@@ -3,7 +3,6 @@ from audnauseum.data_models.loop import Loop
 import sys
 import queue
 import threading
-import time
 
 import soundfile as sf
 import sounddevice as sd
