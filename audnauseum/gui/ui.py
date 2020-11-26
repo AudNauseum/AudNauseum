@@ -191,12 +191,9 @@ def rem_track(ui, looper: Looper) -> bool:
             ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
-            # get only file name from full path
-            file_name = file_path.split('/')[-1]
             # create the relative path for track location
+            file_name = file_path.split('/')[-1]
             rel_path = "resources/recordings/" + file_name
-            # print(file_name)
-            # print(rel_path)
             looper.unload_track(rel_path)
             return True
 
@@ -204,42 +201,6 @@ def rem_track(ui, looper: Looper) -> bool:
         return False
     show_popup(ui)
     return False
-
-
-# TODO: Check if these functions are necessary anymore (JSON parsing now done in Looper class)
-
-def parseJSON(fileName) -> object:
-    # read file
-    with open(fileName, 'r') as myfile:
-        data = myfile.read()
-
-    # parse file
-    obj = json.loads(data)
-
-    # print('path: ', obj['file_path'])              # json path
-    # print('bpm:', obj['tracks'][0]['bpm'])         # bpm
-    # print('beats:', obj['met']['beats'])           # beats
-    # print('volume:', obj['fx']['volume'])          # volume
-
-    parseTrackList(obj)
-
-    return obj
-
-
-def parseTrackList(object):
-    # iterate thru all tracks
-    for track in object['tracks']:
-
-        getTrackData(track)
-
-
-# Returns a tuple of track path name as a string and bpm as an int
-def getTrackData(track):
-
-    print(track['file_name'])
-    print(track['bpm'])
-
-    return (track['file_name'], track['bpm'])
 
 # Modified from example provided:  https://www.youtube.com/watch?v=GkgMTyiLtWk
 
