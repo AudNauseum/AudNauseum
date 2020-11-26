@@ -187,28 +187,23 @@ class Looper:
         """
         print(f'{self.state=}')
 
-    def select_track(self):
-        """Displays a list of audio files to import"""
-        tracks = list(os.listdir('resources/recordings'))
-        if tracks:
-            cli = Bullet(prompt='Choose a Track:', choices=tracks)
-            track = cli.launch()
-            return track
-
-    def load_track(self, *args):
+    def load_track(self, file_path: str):
         '''Load a Track into the looper.
 
         Appends the track to the track_list, reads Track
         arguments and generates a numpy array that can be used by sounddevices.
         '''
-        # TODO
-        pass
+        # TODO beats are currently hard-coded to be 20 for all new Tracks
+        x = Track(file_path, beats=20)
+        self.loop.append(x)
 
-    def unload_track(self, *args):
-        # TODO - write code to unload a track from a loop
-        # should call a method from Loop object
-        # hardcoded True for testing
-        return True
+    def unload_track(self, file_path: str):
+        '''Remove a Track from the looper.
+
+        Removes the track from the track_list by matching first instance of the
+        pass file_path that matches.
+        '''
+        self.loop.remove(file_path)
 
     def play_tracks(self, *args):
         '''Finds the correct point in the numpy arrays of the tracks
@@ -364,18 +359,6 @@ class Looper:
         return False
 
     # Track controls
-    def create_track(self, audio_file):
-        return Track(audio_file)
-
-    def add_track(self, track):
-        self.loop.append(track)
-
-    def set_track_beat_length(self, track, beat_length):
-        track.beat_length = beat_length
-
-    def calc_track_bpm(self, track):
-        track.bpm = track.beat_length / track.ms_length * 60000
-
     def track_set_volume(self, track, volume):
         if volume >= 0 and volume <= 1:
             track.fx.volume = volume

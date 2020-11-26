@@ -1,9 +1,10 @@
-from audnauseum.state_machine.looper import Looper
+from audnauseum.state_machine.looper import Looper, LooperStates
 import time
+import os
 import json
 from pathlib import Path
 
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5 import uic
 
 
@@ -19,7 +20,6 @@ def connect_all_inputs(ui, looper: Looper):
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
     connect_volume_dial(ui, looper)
-    connect_track_select(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
@@ -38,10 +38,8 @@ def connect_track_control_buttons(ui, looper: Looper):
     """TRACK CONTROL
     Add listeners to each button in track controls group
     """
-    ui.pushButton_add_track.clicked.connect(lambda: whichbtn('add'))
-    ui.pushButton_rem_track.clicked.connect(lambda: whichbtn('remove'))
-    ui.pushButton_new_track.clicked.connect(lambda: whichbtn('new'))
-    ui.pushButton_solo_track.clicked.connect(lambda: whichbtn('solo'))
+    ui.pushButton_add_track.clicked.connect(lambda: add_track(ui, looper))
+    ui.pushButton_rem_track.clicked.connect(lambda: rem_track(ui, looper))
 
 
 def connect_fx_buttons(ui, looper: Looper):
@@ -67,13 +65,6 @@ def connect_volume_dial(ui, looper: Looper):
     Add listener for volume control
     """
     ui.dial_volume.valueChanged.connect(lambda: dial_value(ui))
-
-
-def connect_track_select(ui, looper: Looper):
-    """TRACK SELECT
-    Add listener to get value of track select
-    """
-    ui.spinBox_context.valueChanged.connect(lambda: spinbox_value(ui))
 
 
 def initialize_lcd_display(ui, looper: Looper):
@@ -135,7 +126,7 @@ def save_file_dialog(ui) -> str:
     options |= QFileDialog.DontUseNativeDialog
 
     file_path, _ = QFileDialog.getSaveFileName(
-        ui, "Save loop file as", "", "Loops Files (*.json)", options=options)
+        ui, "Save loop file as", "./resources/json", "Loops Files (*.json)", options=options)
 
     return file_path
 
@@ -158,37 +149,58 @@ def save_loop(ui, looper: Looper) -> bool:
     return False
 
 
-# TODO: Check if these functions are necessary anymore (JSON parsing now done in Looper class)
+def add_track(ui, looper: Looper) -> bool:
 
-def parseJSON(fileName) -> object:
-    # read file
-    with open(fileName, 'r') as myfile:
-        data = myfile.read()
+    if not looper.state == LooperStates.IDLE:
 
-    # parse file
-    obj = json.loads(data)
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 
-    # print('path: ', obj['file_path'])              # json path
-    # print('bpm:', obj['tracks'][0]['bpm'])         # bpm
-    # print('beats:', obj['met']['beats'])           # beats
-    # print('volume:', obj['fx']['volume'])          # volume
+        if file_path:
+            rel_path = get_rel_path(file_path)
+            looper.load_track(rel_path)
+            return True
 
-    parseTrackList(obj)
-
-    return obj
-
-
-def parseTrackList(object):
-    # iterate thru all tracks
-    for track in object['tracks']:
-
-        getTrackData(track)
+        # The user canceled the add track dialog
+        return False
+    show_popup(ui)
+    return False
 
 
-# Returns a tuple of track path name as a string and bpm as an int
-def getTrackData(track):
+def rem_track(ui, looper: Looper) -> bool:
 
-    print(track['file_name'])
-    print(track['bpm'])
+    if not looper.state == LooperStates.IDLE:
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            ui, "Choose a Track to remove", "./resources/recordings", "Tracks (*.wav)", options=options)
 
-    return (track['file_name'], track['bpm'])
+        if file_path:
+            rel_path = get_rel_path(file_path)
+            looper.unload_track(rel_path)
+            return True
+
+        # The user canceled the add track dialog
+        return False
+    show_popup(ui)
+    return False
+
+
+def get_rel_path(abs_path) -> str:
+    # create the relative path for track location
+    file_name = abs_path.split('/')[-1]
+    rel_path = "resources/recordings/" + file_name
+
+    return rel_path
+
+# Modified from example provided in PyQt5 video:  https://www.youtube.com/watch?v=GkgMTyiLtWk
+
+
+def show_popup(ui):
+    msg = QMessageBox()
+    msg.setWindowTitle("Error")
+    msg.setText("A loop must be loaded.")
+
+    msg.exec_()
