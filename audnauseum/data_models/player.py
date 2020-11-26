@@ -9,16 +9,14 @@ import sounddevice as sd
 import numpy as np
 assert np
 
+# TODO: Import from a constants file if used elsewhere in the app?
 BLOCK_SIZE = 2048  # roughly 46ms per block given sample rate = 44100
 QUEUE_SIZE = 40    # number of blocks in the queue
-
-# TODO: Do we need this event? It gets set when the audio finishes playing
-# We probably need to know when the audio finishes playing to restart the loop
-playing_event = threading.Event()
 
 
 class Player:
     stream: sd.OutputStream
+    file: sf.SoundFile
     playing: bool
     previously_playing: bool
     output_queue: queue.Queue
@@ -31,6 +29,7 @@ class Player:
 
     def __init__(self, blocksize=BLOCK_SIZE, queue_size=QUEUE_SIZE):
         self.stream = None
+        self.file = None
         self.event = None
         self.playing = False
         self.previously_playing = False
@@ -48,32 +47,35 @@ class Player:
         Numpy array.
         """
         self.loop = loop
-        # TODO: Get samplerate at a loop level? Can tracks have different sample rates?
+        # TODO: Get samplerate at a loop level?
+        # Can tracks have different sample rates?
         self.samplerate = loop.tracks[0].samplerate
         # TODO: Change from hard-coded first index to using all in the list
         track = loop.tracks[0]
+        self.playing = True
         self.thread = threading.Thread(
             target=self.file_reading_thread, kwargs=dict(track=track))
         self.thread.start()
-        self.event = threading.Event()
-        self.playing = True
         self.create_stream()
 
-    def file_reading_thread(self, track: Track):
+    def file_reading_thread(self, track: Track, cursor: int = 0):
         """Write data from file to queue."""
-        timeout = self.blocksize * self.queue_size / track.samplerate
-        print(f'{track.file_name}')
-        with sf.SoundFile(track.file_name) as file:
-            print(f'{file.samplerate}')
-            print(f'{file.frames}')
-            for block in file.blocks(self.blocksize):
-                if not self.playing:
-                    break
-                try:
-                    self.output_queue.put(block, timeout=timeout)
-                except queue.Full:
-                    print('queue full')
-                    break
+        timeout = self.blocksize * self.queue_size / (track.samplerate * 4)
+        self.file = sf.SoundFile(track.file_name)
+        self.file.seek(cursor)
+
+        while self.playing:
+            block: np.ndarray = self.file.read(self.blocksize)
+            if not block.any():
+                # No more blocks to read, reset cursor to the beginning
+                self.file.seek(0)
+                continue
+            if not self.playing:
+                break
+            try:
+                self.output_queue.put(block, timeout=timeout)
+            except queue.Full:
+                break
 
     def create_stream(self):
         if self.stream is not None:
@@ -81,11 +83,28 @@ class Player:
         self.stream = sd.OutputStream(
             blocksize=self.blocksize, dtype='float32',
             samplerate=self.samplerate, channels=self.channels,
-            callback=self.callback, finished_callback=self.event.set)
+            callback=self.callback)
         self.stream.start()
 
     def stop(self):
         self.playing = False
+        self.stream.close()
+        self.output_queue.task_done()
+        self.file.close()
+        self.empty_queue()
+        self.thread.join()
+
+    def empty_queue(self):
+        """Empty the queue of audio blocks
+
+        Python doesn't seem to actually provide a method to empty a queue
+        """
+        while not self.output_queue.empty():
+            try:
+                self.output_queue.get_nowait()
+                self.output_queue.task_done()
+            except queue.Empty:
+                pass
 
     def callback(self, outdata, frames: int, time, status: sd.CallbackFlags):
         """This callback is called from a separate thread by the underlying
@@ -100,17 +119,16 @@ class Player:
             raise sd.CallbackAbort
         assert not status
         try:
-            data = self.output_queue.get_nowait()
+            data: np.ndarray = self.output_queue.get_nowait()
         except queue.Empty as e:
             print('Queue is empty: increase queue_size?', file=sys.stderr)
             raise sd.CallbackAbort from e
 
-        # Check if the audio file naturally finished playing
+        # Check if the audio block isn't full
         if len(data) < len(outdata):
-            # zero-byte the remainder of the output
-            outdata = np.empty((2048, 2), dtype='float32')
+            # zero-byte the remainder of the output in case there's noise
+            outdata = np.empty(
+                (self.blocksize, self.channels), dtype='float32')
             outdata[:len(data)] = data
-            self.stop()
-            raise sd.CallbackStop
         else:
             outdata[:] = data
