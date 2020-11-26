@@ -128,7 +128,7 @@ def save_file_dialog(ui) -> str:
     options |= QFileDialog.DontUseNativeDialog
 
     file_path, _ = QFileDialog.getSaveFileName(
-        ui, "Save loop file as", "", "Loops Files (*.json)", options=options)
+        ui, "Save loop file as", "./resources/json", "Loops Files (*.json)", options=options)
 
     return file_path
 
@@ -159,7 +159,7 @@ def add_track(ui, looper: Looper) -> bool:
         options |= QFileDialog.DontUseNativeDialog
 
         file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+            ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
             # get only file name from full path
@@ -176,8 +176,6 @@ def add_track(ui, looper: Looper) -> bool:
     show_popup(ui)
     return False
 
-# TODO might be better served in looper.py
-
 
 def rem_track(ui, looper: Looper) -> bool:
 
@@ -188,7 +186,7 @@ def rem_track(ui, looper: Looper) -> bool:
         options |= QFileDialog.DontUseNativeDialog
 
         file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track", "./resources/recordings", "Tracks (*.wav)", options=options)
+            ui, "Choose a Track to remove", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
             # create the relative path for track location
