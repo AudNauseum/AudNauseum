@@ -63,7 +63,7 @@ class Looper:
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
-         'dest': LooperStates.IDLE, 'after': 'unload_track',
+         'dest': LooperStates.IDLE, 'before': 'unload_track',
          'conditions': 'no_tracks'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'unload_track'},

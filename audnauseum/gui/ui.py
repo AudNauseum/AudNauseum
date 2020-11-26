@@ -153,7 +153,8 @@ def save_loop(ui, looper: Looper) -> bool:
 
 def add_track(ui, looper: Looper) -> bool:
 
-    if path.exists("./resources/temp/temp.json"):
+    # TODO this doesn't do anything really
+    if not looper.state == 'IDLE':
 
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -162,12 +163,7 @@ def add_track(ui, looper: Looper) -> bool:
             ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
-            # get only file name from full path
-            file_name = file_path.split('/')[-1]
-            # create the relative path for track location
-            rel_path = "resources/recordings/" + file_name
-            # print(file_name)
-            # print(rel_path)
+            rel_path = get_rel_path(file_path)
             looper.load_track(rel_path)
             return True
 
@@ -179,19 +175,15 @@ def add_track(ui, looper: Looper) -> bool:
 
 def rem_track(ui, looper: Looper) -> bool:
 
-    # If a loop is loaded, allow removing tracks
-    if path.exists("./resources/temp/temp.json"):
-
+    # TODO this doesn't do anything really
+    if not looper.state == 'IDLE':
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-
         file_path, _ = QFileDialog.getOpenFileName(
             ui, "Choose a Track to remove", "./resources/recordings", "Tracks (*.wav)", options=options)
 
         if file_path:
-            # create the relative path for track location
-            file_name = file_path.split('/')[-1]
-            rel_path = "resources/recordings/" + file_name
+            rel_path = get_rel_path(file_path)
             looper.unload_track(rel_path)
             return True
 
@@ -200,7 +192,15 @@ def rem_track(ui, looper: Looper) -> bool:
     show_popup(ui)
     return False
 
-# Modified from example provided:  https://www.youtube.com/watch?v=GkgMTyiLtWk
+
+def get_rel_path(abs_path) -> str:
+    # create the relative path for track location
+    file_name = abs_path.split('/')[-1]
+    rel_path = "resources/recordings/" + file_name
+
+    return rel_path
+
+# Modified from example provided in PyQt5 video:  https://www.youtube.com/watch?v=GkgMTyiLtWk
 
 
 def show_popup(ui):
