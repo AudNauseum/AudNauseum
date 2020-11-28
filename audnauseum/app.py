@@ -25,4 +25,5 @@ app.setWindowIcon(QIcon(str(icon_file)))
 # Create the UI for the application
 ui = generate_ui(ui_file)
 connect_all_inputs(ui, looper)
+ui.closeEvent = looper.shut_down
 ui.show()

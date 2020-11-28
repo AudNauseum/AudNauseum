@@ -4,7 +4,6 @@ from audnauseum.data_models.track import Track
 from audnauseum.data_models.complex_decoder import ComplexDecoder
 from audnauseum.data_models.recorder import Recorder
 from transitions import Machine
-from bullet import Bullet
 import os
 import enum
 import json
@@ -175,8 +174,8 @@ class Looper:
             try:
                 return f.read()
             except Exception as e:
-                print(
-                    f'Exception in read_json of file: {file_path}\nMessage: {e}')
+                print(f'Exception in read_json of file: {file_path}')
+                print(f'Message: {e}')
 
     def echo_state_change(self, *args):
         """TEMPORARY: Prints the state to the terminal after changing
@@ -214,7 +213,6 @@ class Looper:
 
     def stop_playing(self, *args):
         """Stops the current playing output"""
-        print('stop_playing')
         self.player.stop()
 
     def start_recording(self, *args):
@@ -416,3 +414,17 @@ class Looper:
             # We slipped back from the beginning of the file, so go to end, and
             # back up 1ms
         return True
+
+    def shut_down(self, event):
+        """Closes open resources before shutting down the GUI.
+
+        Called by the PyQt5 onClose event, passes the PyQt5.QtGui.QCloseEvent
+        object as an argument but is unneeded."""
+        print('Shutting down AudNauseum...')
+
+        if self.player.playing:
+            self.player.stop()
+
+        if self.recorder and self.recorder.recording:
+            self.recorder.on_stop()
+        print('Goodbye!')
