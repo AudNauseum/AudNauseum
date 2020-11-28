@@ -20,7 +20,7 @@ def connect_all_inputs(ui, looper: Looper):
     connect_track_control_buttons(ui, looper)
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
-    connect_volume_dial(ui, looper)
+    # connect_volume_dial(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
