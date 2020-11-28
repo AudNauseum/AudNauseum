@@ -1150,7 +1150,7 @@ QPushButton:pressed {
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider">
+  <widget class="QSlider" name="volumeSlider">
    <property name="geometry">
     <rect>
      <x>700</x>
@@ -1158,6 +1158,9 @@ QPushButton:pressed {
      <width>141</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="maximum">
+    <number>100</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
