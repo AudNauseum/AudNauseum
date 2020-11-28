@@ -30,12 +30,15 @@ def connect_transport_control_buttons(ui, looper: Looper):
     Add listeners to each button in transport controls group
     """
     ui.pushButton_record.clicked.connect(looper.record)
-    ui.pushButton_record.clicked.connect(
-        lambda: transport_status(ui, 'record'))
     ui.pushButton_play.clicked.connect(looper.play)
-    ui.pushButton_play.clicked.connect(lambda: transport_status(ui, 'play'))
     ui.pushButton_stop.clicked.connect(looper.stop)
-    ui.pushButton_stop.clicked.connect(lambda: transport_status(ui, ''))
+
+    ui.pushButton_record.clicked.connect(
+        lambda: transport_status(ui, looper, 'record'))
+    ui.pushButton_play.clicked.connect(
+        lambda: transport_status(ui, looper, 'play'))
+    ui.pushButton_stop.clicked.connect(
+        lambda: transport_status(ui, looper,  ''))
 
 
 def connect_track_control_buttons(ui, looper: Looper):
@@ -210,63 +213,65 @@ def show_popup(ui):
     msg.exec_()
 
 
-def transport_status(ui, status):
+def transport_status(ui, looper: Looper, status):
 
-    if status == 'record':
+    if not looper.state == LooperStates.IDLE:
 
-        ui.status_indicator.setStyleSheet("""
-                                            QPushButton 
-                                            {
-                                                color: #333;
-                                                border: 2px solid #555;
-                                                border-radius: 20px;
-                                                border-style: outset;
-                                                background: qradialgradient(
-                                                    cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
-                                                    radius: 1.35, stop: 0 #fff, stop: 1 #b12
-                                                    );
-                                                padding: 5px;
-                                            }
-                                            """
-                                          )
-        ui.status_indicator.setText("REC")
+        if status == 'record':
 
-    elif status == 'play':
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #b12
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
+            ui.status_indicator.setText("REC")
 
-        ui.status_indicator.setStyleSheet("""
-                                            QPushButton 
-                                            {
-                                                color: #333;
-                                                border: 2px solid #555;
-                                                border-radius: 20px;
-                                                border-style: outset;
-                                                background: qradialgradient(
-                                                    cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
-                                                    radius: 1.35, stop: 0 #fff, stop: 1 #1b2
-                                                    );
-                                                padding: 5px;
-                                            }
-                                            """
-                                          )
+        elif status == 'play':
 
-        ui.status_indicator.setText("PLAY")
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #1b2
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
 
-    else:
+            ui.status_indicator.setText("PLAY")
 
-        ui.status_indicator.setStyleSheet("""
-                                            QPushButton 
-                                            {
-                                                color: #333;
-                                                border: 2px solid #555;
-                                                border-radius: 20px;
-                                                border-style: outset;
-                                                background: qradialgradient(
-                                                    cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
-                                                    radius: 1.35, stop: 0 #fff, stop: 1 #ddd
-                                                    );
-                                                padding: 5px;
-                                            }
-                                            """
-                                          )
+        else:
 
-        ui.status_indicator.setText("STOP")
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #ddd
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
+
+            ui.status_indicator.setText("STOP")
