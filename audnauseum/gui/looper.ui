@@ -768,6 +768,11 @@ QPushButton:pressed {
      <height>40</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
     color: #333;
@@ -797,7 +802,7 @@ QPushButton:pressed {
     }</string>
    </property>
    <property name="text">
-    <string/>
+    <string>OFF</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_19">
@@ -928,7 +933,7 @@ QPushButton:pressed {
     <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_rec_indicator">
+  <widget class="QPushButton" name="status_indicator">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -945,6 +950,11 @@ QPushButton:pressed {
      <width>40</width>
      <height>40</height>
     </size>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
@@ -975,7 +985,7 @@ QPushButton:pressed {
     }</string>
    </property>
    <property name="text">
-    <string/>
+    <string>STOP</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_13">

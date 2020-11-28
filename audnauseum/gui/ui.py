@@ -1,7 +1,5 @@
 from audnauseum.state_machine.looper import Looper, LooperStates
 import time
-import os
-import json
 from pathlib import Path
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -33,6 +31,13 @@ def connect_transport_control_buttons(ui, looper: Looper):
     ui.pushButton_play.clicked.connect(looper.play)
     ui.pushButton_stop.clicked.connect(looper.stop)
 
+    ui.pushButton_record.clicked.connect(
+        lambda: transport_status(ui, looper, 'record'))
+    ui.pushButton_play.clicked.connect(
+        lambda: transport_status(ui, looper, 'play'))
+    ui.pushButton_stop.clicked.connect(
+        lambda: transport_status(ui, looper,  ''))
+
 
 def connect_track_control_buttons(ui, looper: Looper):
     """TRACK CONTROL
@@ -46,10 +51,10 @@ def connect_fx_buttons(ui, looper: Looper):
     """EFFECTS (FX)
     Add listeners to each button in effects control group
     """
-    ui.pushButton_pan_beats.clicked.connect(lambda: whichbtn('pan'))
-    ui.pushButton_pitch.clicked.connect(lambda: whichbtn('pitch'))
-    ui.pushButton_slip.clicked.connect(lambda: whichbtn('slip'))
-    ui.pushButton_reverse.clicked.connect(lambda: whichbtn('reverse'))
+    ui.pushButton_pan_beats.clicked.connect(lambda: whichbtn(ui, 'pan'))
+    ui.pushButton_pitch.clicked.connect(lambda: whichbtn(ui, 'pitch'))
+    ui.pushButton_slip.clicked.connect(lambda: whichbtn(ui, 'slip'))
+    ui.pushButton_reverse.clicked.connect(lambda: whichbtn(ui, 'reverse'))
 
 
 def connect_metronome_buttons(ui, looper: Looper):
@@ -87,7 +92,7 @@ def connect_save_loop(ui, looper: Looper):
     ui.pushButton_save_file.clicked.connect(lambda: save_loop(ui, looper))
 
 
-def whichbtn(_str):
+def whichbtn(ui, _str):
     print("clicked button is", _str)
 
 
@@ -204,3 +209,67 @@ def show_popup(ui):
     msg.setText("A loop must be loaded.")
 
     msg.exec_()
+
+
+def transport_status(ui, looper: Looper, status):
+
+    if not looper.state == LooperStates.IDLE:
+
+        if status == 'record':
+
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #b12
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
+            ui.status_indicator.setText("REC")
+
+        elif status == 'play':
+
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #1b2
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
+
+            ui.status_indicator.setText("PLAY")
+
+        else:
+
+            ui.status_indicator.setStyleSheet("""
+                                                QPushButton 
+                                                {
+                                                    color: #333;
+                                                    border: 2px solid #555;
+                                                    border-radius: 20px;
+                                                    border-style: outset;
+                                                    background: qradialgradient(
+                                                        cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
+                                                        radius: 1.35, stop: 0 #fff, stop: 1 #ddd
+                                                        );
+                                                    padding: 5px;
+                                                }
+                                                """
+                                              )
+
+            ui.status_indicator.setText("STOP")
