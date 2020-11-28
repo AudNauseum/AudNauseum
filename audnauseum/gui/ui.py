@@ -45,6 +45,18 @@ def update_track_list(ui, looper: Looper):
         item["item{0}".format(index)].setText(name)
         index += 1
 
+    # Select row 0 by default to prevent a NoneType error
+    ui.listWidget.setCurrentRow(0)
+    ui.listWidget.setFocus()
+
+
+def get_track(ui):
+
+    row = ui.listWidget.currentRow()
+    track = ui.listWidget.takeItem(row)
+
+    return track
+
 
 def connect_transport_control_buttons(ui, looper: Looper):
     """TRANSPORT CONTROLS
@@ -193,19 +205,13 @@ def add_track(ui, looper: Looper) -> bool:
 def rem_track(ui, looper: Looper) -> bool:
 
     if not looper.state == LooperStates.IDLE:
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track to remove", "./resources/recordings", "Tracks (*.wav)", options=options)
 
-        if file_path:
-            rel_path = get_rel_path(file_path)
-            looper.remove_track(rel_path)
-            update_track_list(ui, looper)
-            return True
+        track = get_track(ui)
+        rel_path = get_rel_path(track.text())
+        print(rel_path)
+        looper.remove_track(rel_path)
+        return True
 
-        # The user canceled the add track dialog
-        return False
     show_popup(ui)
     return False
 
