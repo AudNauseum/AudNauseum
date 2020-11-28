@@ -418,7 +418,7 @@ class Looper:
     def shut_down(self, event):
         """Closes open resources before shutting down the GUI.
 
-        Called by the PyQt5 onClose event, passes the PyQt5.QtGui.QCloseEvent
+        Called by the PyQt5 closeEvent, passes the PyQt5.QtGui.QCloseEvent
         object as an argument but is unneeded."""
         print('Shutting down AudNauseum...')
 
