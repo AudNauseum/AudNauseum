@@ -249,7 +249,7 @@ def transport_status(ui, status):
                                             """
                                           )
 
-        ui.status_indicator.setText("PLY")
+        ui.status_indicator.setText("PLAY")
 
     else:
 
@@ -269,4 +269,4 @@ def transport_status(ui, status):
                                             """
                                           )
 
-        ui.status_indicator.setText("")
+        ui.status_indicator.setText("STOP")
