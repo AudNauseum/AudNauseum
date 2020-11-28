@@ -1,7 +1,5 @@
 from audnauseum.state_machine.looper import Looper, LooperStates
 import time
-import os
-import json
 from pathlib import Path
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
