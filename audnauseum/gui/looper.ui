@@ -928,7 +928,7 @@ QPushButton:pressed {
     <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_rec_indicator">
+  <widget class="QPushButton" name="status_indicator">
    <property name="enabled">
     <bool>false</bool>
    </property>
