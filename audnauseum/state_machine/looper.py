@@ -44,7 +44,7 @@ class Looper:
     transitions = [
         # idle state transitions
         {'trigger': 'load', 'source': LooperStates.IDLE,
-         'dest': LooperStates.LOADED, 'after': 'load_loop'},
+         'dest': LooperStates.LOADED, 'conditions': ['load_loop', 'tracks_exist']},
         {'trigger': 'add_track', 'source': LooperStates.IDLE,
          'dest': LooperStates.LOADED, 'after': 'load_track'},
         {'trigger': 'record', 'source': LooperStates.IDLE,
@@ -62,10 +62,7 @@ class Looper:
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
-         'dest': LooperStates.IDLE, 'before': 'unload_track',
-         'conditions': 'no_tracks'},
-        {'trigger': 'remove_track', 'source': LooperStates.LOADED,
-         'dest': '=', 'after': 'unload_track'},
+         'dest': LooperStates.IDLE, 'conditions': ['unload_track', 'no_tracks']},
         {'trigger': 'play', 'source': LooperStates.LOADED,
             'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'metronome', 'source': LooperStates.LOADED,
@@ -156,6 +153,11 @@ class Looper:
         self.recorder = None
         self.player = Player()
 
+        # Create a default (empty track) loop upon startup & load it
+        default_path = './resources/json/default.json'
+        self.write_loop(default_path)
+        self.load_loop(default_path)
+
     def load_loop(self, file_path: str):
         try:
             json_data = self.read_json(file_path)
@@ -187,22 +189,30 @@ class Looper:
         print(f'{self.state=}')
 
     def load_track(self, file_path: str):
-        '''Load a Track into the looper.
-
-        Appends the track to the track_list, reads Track
-        arguments and generates a numpy array that can be used by sounddevices.
+        '''
+        Load a Track into the looper.
         '''
         # TODO beats are currently hard-coded to be 20 for all new Tracks
-        x = Track(file_path, beats=20)
-        self.loop.append(x)
+        try:
+            x = Track(file_path, beats=20)
+            self.loop.append(x)
+            return True
+        except Exception as e:
+            print(
+                f'Exception while loading track from {file_path}\nMessage: {e}')
+            return False
 
     def unload_track(self, file_path: str):
-        '''Remove a Track from the looper.
-
-        Removes the track from the track_list by matching first instance of the
-        pass file_path that matches.
         '''
-        self.loop.remove(file_path)
+        Remove a Track from the looper.
+        '''
+        try:
+            self.loop.remove(file_path)
+            return True
+        except Exception as e:
+            print(
+                f'Exception while removing track from {file_path}\nMessage: {e}')
+            return False
 
     def play_tracks(self, *args):
         '''Finds the correct point in the numpy arrays of the tracks
@@ -241,7 +251,7 @@ class Looper:
         self.stop_playing()
         self.stop_recording()
 
-    @property
+    @ property
     def has_loaded(self):
         '''Used for conditional transitions where a file must
         successfully be loaded.
@@ -251,12 +261,19 @@ class Looper:
         # hardcoded True for testing
         return True
 
-    @property
+    @ property
     def no_tracks(self):
         '''Used for conditional transitions where a Loop must be empty.
         Returns true if the track_list is empty
         '''
         return len(self.loop.tracks) == 0
+
+    @ property
+    def tracks_exist(self):
+        '''Used for conditional transitions where a Loop must be empty.
+        Returns true if the track_list is empty
+        '''
+        return len(self.loop.tracks) != 0
 
     # Metronome controls
     def metronome_toggle(self):

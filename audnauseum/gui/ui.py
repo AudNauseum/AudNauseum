@@ -2,7 +2,8 @@ from audnauseum.state_machine.looper import Looper, LooperStates
 import time
 from pathlib import Path
 
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QListWidget, QListWidgetItem
 from PyQt5 import uic
 
 
@@ -17,10 +18,42 @@ def connect_all_inputs(ui, looper: Looper):
     connect_track_control_buttons(ui, looper)
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
-    connect_volume_dial(ui, looper)
+    connect_volume(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
+
+
+# Dictionary for creating unique item names in for-loop modified from source code:
+# https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
+
+def update_track_list(ui, looper: Looper):
+
+    track_list = looper.loop.tracks
+    item = {}
+
+    ui.listWidget.clear()
+
+    index = 1
+    for track in track_list:
+        name = track.file_name.split('/')[-1]
+
+        item["item{0}".format(index)] = QListWidgetItem(name)
+        ui.listWidget.addItem(item["item{0}".format(index)])
+        item["item{0}".format(index)].setText(name)
+        index += 1
+
+    # Select row 0 by default to prevent a NoneType error
+    ui.listWidget.setCurrentRow(0)
+    ui.listWidget.setFocus()
+
+
+def get_track(ui):
+
+    row = ui.listWidget.currentRow()
+    track = ui.listWidget.takeItem(row)
+
+    return track
 
 
 def connect_transport_control_buttons(ui, looper: Looper):
@@ -65,11 +98,11 @@ def connect_metronome_buttons(ui, looper: Looper):
         lambda: whichbtn('metro_toggle'))
 
 
-def connect_volume_dial(ui, looper: Looper):
+def connect_volume(ui, looper: Looper):
     """VOLUME
     Add listener for volume control
     """
-    ui.dial_volume.valueChanged.connect(lambda: dial_value(ui))
+    ui.volumeSlider.valueChanged.connect(lambda: dial_value(ui))
 
 
 def initialize_lcd_display(ui, looper: Looper):
@@ -97,13 +130,8 @@ def whichbtn(ui, _str):
 
 
 def dial_value(ui):
-    getValue = ui.dial_volume.value()
+    getValue = ui.volumeSlider.value()
     print("volume value is", str(getValue))
-
-
-def spinbox_value(ui):
-    getValue = ui.spinBox_context.value()
-    print("track selected is", str(getValue))
 
 
 def countdown(ui):
@@ -140,6 +168,7 @@ def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)
+        update_track_list(ui, looper)
         return True
     # The user canceled the file dialog
     return False
@@ -156,39 +185,29 @@ def save_loop(ui, looper: Looper) -> bool:
 
 def add_track(ui, looper: Looper) -> bool:
 
-    if not looper.state == LooperStates.IDLE:
+    options = QFileDialog.Options()
+    options |= QFileDialog.DontUseNativeDialog
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
 
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track to add", "./resources/recordings", "Tracks (*.wav)", options=options)
-
-        if file_path:
-            rel_path = get_rel_path(file_path)
-            looper.load_track(rel_path)
-            return True
+    if file_path:
+        rel_path = get_rel_path(file_path)
+        looper.add_track(rel_path)
+        update_track_list(ui, looper)
+        return True
 
         # The user canceled the add track dialog
-        return False
-    show_popup(ui)
     return False
 
 
 def rem_track(ui, looper: Looper) -> bool:
 
     if not looper.state == LooperStates.IDLE:
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getOpenFileName(
-            ui, "Choose a Track to remove", "./resources/recordings", "Tracks (*.wav)", options=options)
+        track = get_track(ui)
+        rel_path = get_rel_path(track.text())
+        looper.remove_track(rel_path)
+        return True
 
-        if file_path:
-            rel_path = get_rel_path(file_path)
-            looper.unload_track(rel_path)
-            return True
-
-        # The user canceled the add track dialog
-        return False
     show_popup(ui)
     return False
 
