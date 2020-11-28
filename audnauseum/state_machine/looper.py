@@ -7,6 +7,7 @@ from transitions import Machine
 import os
 import enum
 import json
+import sounddevice as sd
 
 
 class LooperStates(enum.Enum):
@@ -145,6 +146,9 @@ class Looper:
                                transitions=Looper.transitions,
                                ignore_invalid_triggers=True,
                                after_state_change=self.echo_state_change)
+
+        self.set_default_channels()
+
         if loop is None:
             self.loop = Loop()
         else:
@@ -157,6 +161,36 @@ class Looper:
         default_path = './resources/json/default.json'
         self.write_loop(default_path)
         self.load_loop(default_path)
+
+    def set_default_channels(self):
+        """Detects and sets the default sounddevice channels
+
+        Checks the Host APIs of the user's OS audio settings for the
+        default input and output devices.
+
+        Sets the sounddevice default channels tuple to the capabilities
+        of the input and output devices.
+
+        On Linux, the default input/output devices are often a "virtual"
+        device using ALSA and can have 32, 64, or even 128 channels. This
+        value is clamped to 2 for what the physical device can support.
+        """
+        for api in sd.query_hostapis():
+            input_device = api.get('default_input_device', None)
+            output_device = api.get('default_output_device', None)
+            if input_device and input_device >= 0 and \
+                    output_device and output_device >= 0:
+                devices = sd.query_devices()
+                input_channels = devices[input_device]['max_input_channels']
+                if input_channels > 2:
+                    # Clamp value in case of virtual device
+                    input_channels = 2
+                output_channels = devices[output_device]['max_output_channels']
+                if output_channels > 2:
+                    # Clamp value in case of virtual device
+                    output_channels = 2
+                sd.default.channels = input_channels, output_channels
+                break
 
     def load_loop(self, file_path: str):
         try:
