@@ -15,6 +15,7 @@ ui_file = Path(__file__).parent.absolute() / 'gui' / 'looper.ui'
 
 # Create PyQt5 application
 app = QApplication(sys.argv)
+app.setApplicationName('AudNauseum')
 
 # Set the desktop icon
 # Icon generated from IconsFlow
