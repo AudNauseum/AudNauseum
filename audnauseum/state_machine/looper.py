@@ -64,8 +64,6 @@ class Looper:
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'remove_track', 'source': LooperStates.LOADED,
          'dest': LooperStates.IDLE, 'conditions': ['unload_track', 'no_tracks']},
-        {'trigger': 'remove_track', 'source': LooperStates.LOADED,
-         'dest': '=', 'after': 'unload_track'},
         {'trigger': 'play', 'source': LooperStates.LOADED,
             'dest': LooperStates.PLAYING, 'after': 'play_tracks'},
         {'trigger': 'metronome', 'source': LooperStates.LOADED,

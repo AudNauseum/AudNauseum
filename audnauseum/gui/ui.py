@@ -198,10 +198,8 @@ def add_track(ui, looper: Looper) -> bool:
 def rem_track(ui, looper: Looper) -> bool:
 
     if not looper.state == LooperStates.IDLE:
-
         track = get_track(ui)
         rel_path = get_rel_path(track.text())
-        print(rel_path)
         looper.remove_track(rel_path)
         return True
 
