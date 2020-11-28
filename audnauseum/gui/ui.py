@@ -4,7 +4,8 @@ import os
 import json
 from pathlib import Path
 
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QListWidget, QListWidgetItem
 from PyQt5 import uic
 
 
@@ -23,6 +24,26 @@ def connect_all_inputs(ui, looper: Looper):
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
+
+
+# Dictionary wizardy modified from source code:
+# https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
+
+def update_track_list(ui, looper: Looper):
+
+    track_list = looper.loop.tracks
+    item = {}
+
+    ui.listWidget.clear()
+
+    index = 1
+    for track in track_list:
+        name = track.file_name.split('/')[-1]
+
+        item["item{0}".format(index)] = QListWidgetItem(name)
+        ui.listWidget.addItem(item["item{0}".format(index)])
+        item["item{0}".format(index)].setText(name)
+        index += 1
 
 
 def connect_transport_control_buttons(ui, looper: Looper):
@@ -95,6 +116,8 @@ def dial_value(ui):
     getValue = ui.dial_volume.value()
     print("volume value is", str(getValue))
 
+# TODO Marked for removal
+
 
 def spinbox_value(ui):
     getValue = ui.spinBox_context.value()
@@ -135,6 +158,7 @@ def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)
+        update_track_list(ui, looper)
         return True
     # The user canceled the file dialog
     return False
@@ -151,8 +175,6 @@ def save_loop(ui, looper: Looper) -> bool:
 
 def add_track(ui, looper: Looper) -> bool:
 
-    # if not looper.state == LooperStates.IDLE:
-
     options = QFileDialog.Options()
     options |= QFileDialog.DontUseNativeDialog
     file_path, _ = QFileDialog.getOpenFileName(
@@ -161,12 +183,11 @@ def add_track(ui, looper: Looper) -> bool:
     if file_path:
         rel_path = get_rel_path(file_path)
         looper.add_track(rel_path)
+        update_track_list(ui, looper)
         return True
 
         # The user canceled the add track dialog
     return False
-    # show_popup(ui)
-    # return False
 
 
 def rem_track(ui, looper: Looper) -> bool:
@@ -180,6 +201,7 @@ def rem_track(ui, looper: Looper) -> bool:
         if file_path:
             rel_path = get_rel_path(file_path)
             looper.remove_track(rel_path)
+            update_track_list(ui, looper)
             return True
 
         # The user canceled the add track dialog
