@@ -13,13 +13,20 @@
   <property name="windowTitle">
    <string>AudNauseum</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../resources/icon/icon_with_name.png</normaloff>../../resources/icon/icon_with_name.png</iconset>
+  </property>
+  <property name="toolTipDuration">
+   <number>-2</number>
+  </property>
   <widget class="QLCDNumber" name="lcdNumber">
    <property name="geometry">
     <rect>
-     <x>422</x>
-     <y>73</y>
-     <width>191</width>
-     <height>71</height>
+     <x>412</x>
+     <y>63</y>
+     <width>211</width>
+     <height>101</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -658,6 +665,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>TRANSPORT CONTROLS</string>
    </property>
@@ -670,6 +682,11 @@ QPushButton:pressed {
      <width>91</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
    </property>
    <property name="text">
     <string>EFFECTS (FX)</string>
@@ -815,6 +832,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>METRONOME</string>
    </property>
@@ -853,6 +875,9 @@ QPushButton:pressed {
      <width>20</width>
      <height>471</height>
     </rect>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
@@ -958,6 +983,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>CURRENT TRACK LIST</string>
    </property>
@@ -984,6 +1014,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>LOAD / SAVE LOOP FILE</string>
    </property>
@@ -992,9 +1027,9 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>217</x>
-     <y>101</y>
+     <y>110</y>
      <width>111</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="minimumSize">
@@ -1017,7 +1052,7 @@ QPushButton:pressed {
     <string notr="true">QPushButton {
     color: #333;
     border: 2px solid #555;
-    border-radius: 2px;
+    border-radius: 20px;
     border-style: outset;
     background: qradialgradient(
         cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
@@ -1065,9 +1100,9 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>82</x>
-     <y>101</y>
+     <y>110</y>
      <width>111</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="minimumSize">
@@ -1090,7 +1125,7 @@ QPushButton:pressed {
     <string notr="true">QPushButton {
     color: #333;
     border: 2px solid #555;
-    border-radius: 2px;
+    border-radius: 20px;
     border-style: outset;
     background: qradialgradient(
         cx: 0.3, cy: -0.4, fx: 0.3, fy: -0.4,
@@ -1143,6 +1178,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>TRACK CONTROLS</string>
    </property>
@@ -1185,6 +1225,11 @@ QPushButton:pressed {
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <italic>true</italic>
+    </font>
+   </property>
    <property name="text">
     <string>VOLUME</string>
    </property>
@@ -1226,6 +1271,42 @@ QPushButton:pressed {
    </property>
    <property name="text">
     <string>100</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_11">
+   <property name="geometry">
+    <rect>
+     <x>713</x>
+     <y>62</y>
+     <width>111</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <kerning>true</kerning>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Sunken</enum>
+   </property>
+   <property name="lineWidth">
+    <number>1</number>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap>../../resources/icon/icon_with_name.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>
