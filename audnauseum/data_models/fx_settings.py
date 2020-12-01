@@ -5,7 +5,7 @@ class FxSettings(object):
     '''FxSettings are an attribute of both Tracks and Loops.
     Only "_slip" doesn't make sense when applying effects to loops'''
 
-    def __init__(self, volume=1.0, pan=0.5, is_reversed=False, pitch_adjust=0, slip=0,):
+    def __init__(self, volume=1.0, pan=0, is_reversed=False, pitch_adjust=0, slip=0,):
         self._volume = volume
         self._pan = pan
         self._is_reversed = is_reversed

@@ -7,6 +7,7 @@ from transitions import Machine
 import os
 import enum
 import json
+import ntpath
 
 
 class LooperStates(enum.Enum):
@@ -169,6 +170,8 @@ class Looper:
             return False
 
     def write_loop(self, file_path: str):
+        if not file_path.lower().endswith(".json"):
+            file_path += ".json"
         self.loop.write_json(file_path)
 
     def read_json(self, file_path: str):
@@ -229,13 +232,13 @@ class Looper:
         '''Writes input audio stream to disk and sends stream to output'''
         if self.recorder is not None:
             self.recorder = None
-        if self.loop.file_path:
-            directory = os.path.splitext(
-                os.path.basename(self.loop.file_path))[0]
-            self.recorder = Recorder(directory=directory,
-                                     track_counter=self.loop.track_count)
-        else:
-            self.recorder = Recorder(track_counter=self.loop.track_count)
+        # if self.loop.file_path:
+        #     directory = os.path.splitext(
+        #         os.path.basename(self.loop.file_path))[0]
+        #     self.recorder = Recorder(directory=directory,
+        #                              track_counter=self.loop.track_count)
+        # else:
+        self.recorder = Recorder()
         self.recorder.on_rec()
 
     def stop_recording(self, *args):
@@ -356,7 +359,7 @@ class Looper:
         return False
 
     def set_pan(self, pan):
-        if pan >= 0 and pan <= 1:
+        if pan >= -1 and pan <= 1:
             self.loop.fx.pitch_adjust = pan
             return True
         return False
@@ -368,7 +371,7 @@ class Looper:
         return False
 
     def pan_dec(self):
-        if self.loop.fx.pan >= 0.01:
+        if self.loop.fx.pan >= -0.99:
             self.loop.fx.pan -= 0.01
             return True
         return False
