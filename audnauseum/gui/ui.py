@@ -18,7 +18,6 @@ def connect_all_inputs(ui, looper: Looper):
     connect_track_control_buttons(ui, looper)
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
-    connect_volume(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
@@ -84,10 +83,18 @@ def connect_fx_buttons(ui, looper: Looper):
     """EFFECTS (FX)
     Add listeners to each button in effects control group
     """
-    ui.pushButton_pan_beats.clicked.connect(lambda: whichbtn(ui, 'pan'))
-    ui.pushButton_pitch.clicked.connect(lambda: whichbtn(ui, 'pitch'))
-    ui.pushButton_slip.clicked.connect(lambda: whichbtn(ui, 'slip'))
-    ui.pushButton_reverse.clicked.connect(lambda: whichbtn(ui, 'reverse'))
+    ui.pushButton_reverse.clicked.connect(
+        lambda: whichbtn(ui, looper, 'reverse'))
+    ui.trackPan.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackPan'))
+    ui.loopPan.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'loopPan'))
+    ui.trackSlip.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackSlip'))
+    ui.trackVolume.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackVolume'))
+    ui.loopVolume.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'loopVolume'))
 
 
 def connect_metronome_buttons(ui, looper: Looper):
@@ -95,14 +102,7 @@ def connect_metronome_buttons(ui, looper: Looper):
     Add listener to toggle metronome on or off
     """
     ui.pushButton_metro_on_off.clicked.connect(
-        lambda: whichbtn('metro_toggle'))
-
-
-def connect_volume(ui, looper: Looper):
-    """VOLUME
-    Add listener for volume control
-    """
-    ui.volumeSlider.valueChanged.connect(lambda: dial_value(ui))
+        lambda: whichbtn(ui, looper, 'metro_toggle'))
 
 
 def initialize_lcd_display(ui, looper: Looper):
@@ -125,13 +125,45 @@ def connect_save_loop(ui, looper: Looper):
     ui.pushButton_save_file.clicked.connect(lambda: save_loop(ui, looper))
 
 
-def whichbtn(ui, _str):
-    print("clicked button is", _str)
+def whichbtn(ui, looper: Looper, _str):
+
+    # print("clicked button is", _str)
+
+    if _str == 'reverse':
+        # TODO need function in looper to set reverse
+        print('reversed')
+    elif _str == 'metro_toggle':
+        # TODO need function to turn on metronome
+        print('metronome toggled')
+        # TODO toggle metronome active status
 
 
-def dial_value(ui):
-    getValue = ui.volumeSlider.value()
-    print("volume value is", str(getValue))
+def slider_value(ui, looper: Looper, _str):
+
+    getValue = -1
+
+    if _str == 'trackPan':
+        getValue = ui.trackPan.value()
+        # TODO need to send track with value
+        # looper.set_pan(getValue)
+    elif _str == 'loopPan':
+        getValue = ui.loopPan.value()
+        looper.set_pan(getValue)
+    elif _str == 'trackSlip':
+        getValue = ui.trackSlip.value()
+        # TODO need function in looper to send value
+    elif _str == 'loopSlip':
+        getValue = ui.loopSlip.value()
+        # TODO need function in looper to send value
+    elif _str == 'trackVolume':
+        getValue = ui.trackVolume.value()
+        # TODO need to send track with value
+        # looper.set_volume(getValue)
+    elif _str == 'loopVolume':
+        getValue = ui.loopVolume.value()
+        looper.set_volume(getValue)
+
+    print(f"{_str} value is", str(getValue))
 
 
 def countdown(ui):
