@@ -36,7 +36,6 @@ class Player:
         self.blocksize = blocksize
         self.queue_size = queue_size
         self.output_queue = queue.Queue(maxsize=self.queue_size)
-        self.channels = 2
 
     def play(self, loop: Loop):
         """Starts the streaming playback from file to audio output.
@@ -82,7 +81,7 @@ class Player:
             self.stream.close()
         self.stream = sd.OutputStream(
             blocksize=self.blocksize, dtype='float32',
-            samplerate=self.samplerate, channels=self.channels,
+            samplerate=self.samplerate,
             callback=self.callback)
         self.stream.start()
 

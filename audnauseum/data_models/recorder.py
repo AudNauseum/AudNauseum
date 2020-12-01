@@ -1,17 +1,16 @@
 # TODO-create file with python's open() and include buffering argument
 # TODO-check for file-creation fail (Line 92)
 
+from datetime import datetime
+from time import sleep
+import soundfile as sf
+import sounddevice as sd
 import os
 import queue
-import sys
-import tempfile
 import threading
 
 import numpy as np
-import sounddevice as sd
-import soundfile as sf
-from time import sleep
-from datetime import datetime
+assert np
 
 
 class Recorder(object):
@@ -26,13 +25,15 @@ class Recorder(object):
         self.audio_q = queue.Queue()
         self.current_file: str
 
-# TODO channels needs to inherit from device settings.  Currently hardwired @ 2
-    def create_stream(self, samplerate=44100, device=[0, 1], channels=2):
+    def create_stream(self, samplerate=44100):
+        """Creates the sounddevice InputStream for recording
+
+        The channels and device are inherited from the respective
+        defaults in sd.default
+        """
         if self.stream is not None:
             self.stream.close()
         self.stream = sd.InputStream(samplerate=samplerate,
-                                     device=device,
-                                     channels=channels,
                                      callback=self.audio_callback)
         self.stream.start()
 
