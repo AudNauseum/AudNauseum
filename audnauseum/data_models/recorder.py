@@ -14,13 +14,11 @@ assert np
 
 
 class Recorder(object):
-    def __init__(self, directory=None, track_counter=0):
+    def __init__(self, directory=None):
         if directory is None:
-            now = datetime.now()
-            self.directory = 'loop_' + now.strftime('%Y%m%d%H%M%S')
+            self.directory = 'resources/recordings'
         else:
             self.directory = directory
-        self.track_counter = track_counter
         self.stream = None
         self.create_stream()
         self.recording = self.previously_recording = False
@@ -63,10 +61,9 @@ class Recorder(object):
         # create directory if not present
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-
+        now = datetime.now()
         filename = self.directory + '/track_' + \
-            str(self.track_counter).zfill(4) + '.wav'
-        self.track_counter += 1
+            now.strftime('%Y%m%d%H%M%S') + '.wav'
         self.current_file = filename
 
         if self.audio_q.qsize() != 0:
@@ -116,7 +113,7 @@ class Recorder(object):
 
 
 def main():
-    R = Recorder('loop_test', 5)
+    R = Recorder()
     R.on_rec()
     sleep(5)
     R.on_stop()
