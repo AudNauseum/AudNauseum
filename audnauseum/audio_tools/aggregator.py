@@ -1,4 +1,4 @@
-from audnauseum.audio_tools.wav_reader import WavReader
+from audnauseum.audio_tools.wav_reader import WavReader, ReleaseTimer
 from threading import Thread
 from queue import Queue
 import time
@@ -31,7 +31,7 @@ class Aggregator:
         self.thread = None
 
     def start(self):
-        self.reader.open_files()
+        self.reader.timer.reset_timer()
         self.is_running = True
         self.thread = Thread(target=self.run)
         self.thread.start()

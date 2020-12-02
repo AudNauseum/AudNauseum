@@ -2,6 +2,7 @@ import soundfile as sf
 import numpy as np
 
 from typing import List
+import math
 import queue
 import time
 
@@ -16,21 +17,27 @@ class ReleaseTimer():
     total_blocks: int
     loop: Loop
     master_timer: int
-    sound_files: List[sf.SoundFiles]
+    sound_files: List[sf.SoundFile]
     waitlist: List[sf.SoundFile]
     release_list: List[sf.SoundFile]
 
     def __init__(self, loop, blocksize):
         self.blocksize = blocksize
         self.loop = loop
-        self.sound_files = get_sound_files()
-        self.master_timer = get_master_timer()
-        self.waitlist = generate_waitlist()
+        self.sound_files = self.get_sound_files()
+        self.master_timer = self.get_master_timer()
+        self.waitlist = self.generate_waitlist()
         self.release_list = None
+        self.release_list = []
 
-    def get_sound_files(self):
-        for each in self.loop.tracks:
-            self.sound_files.append(sf.SoundFile(each.file_name))
+    def get_sound_files(self, cursor=0):
+        if(len(self.loop.tracks) > 0):
+            for track in self.loop.tracks:
+                self.sound_files.append(sf.SoundFile(track.file_name))
+            for each in self.sound_files:
+                each.seek(cursor)
+        else:
+            self.sound_files = []
 
     def get_master_timer(self):
         '''Find the longest file, and determine how many blocks it has including
@@ -45,17 +52,21 @@ class ReleaseTimer():
 
     def generate_waitlist(self):
         '''create an empty list of len(master_timer)'''
-        waitlist = [None] * master_timer
+        waitlist = [None] * self.master_timer
         for i in range(0, len(self.loop.tracks)):
             wait_index = self.loop.tracks[i].fx.slip / self.blocksize
-            self.insert_waitlist(wait_index, self.sound_files[i])
+            if(wait_index == 0):
+                self.release_list.append(self.sound_files[i])
+            else:
+                self.insert_waitlist(wait_index, self.sound_files[i])
 
     def dec_waitlist(self):
         '''reduce the timer by one block, pop the front of the queue to released'''
         current = self.waitlist.pop(0)
+        if(len(self.waitlist) == 0):
+            self.reset_timer()
         if(current is not None):
-            self.release.extend(current)
-        pass
+            self.release_list.extend(current)
 
     def reset_timer(self):
         self.sound_files = self.get_sound_files()
@@ -68,9 +79,9 @@ class ReleaseTimer():
     def insert_waitlist(self, i, sound_file):
         '''insert the soundfile into the wait_list at the given index'''
         if(self.waitlist[i] is not None):
-                self.waitlist[i] += [sound_file]
-            else
-                self.waitlist[i] = [sound_file]
+            self.waitlist[i] += [sound_file]
+        else:
+            self.waitlist[i] = [sound_file]
 
     def release(self, sound_file):
         '''Appends released tracks to the release_list to feed the WavReader'''
@@ -86,6 +97,7 @@ class WavReader:
     output_queue: queue.Queue
     blocksize: int
     sound_files: List[sf.SoundFile]
+    timer = ReleaseTimer
 
     def __init__(self, loop: Loop, blocksize=BLOCK_SIZE, queue_size=READER_QUEUE_SIZE) -> None:
         """Initialize the WavReader
@@ -98,15 +110,16 @@ class WavReader:
         self.output_queue = queue.Queue(queue_size)
         self.blocksize = blocksize
         self.sound_files = None
+        self.timer = ReleaseTimer(self.loop, self.blocksize)
 
-    def open_files(self, cursor: int = 0) -> None:
-        """Opens WAV files into SoundFile objects
-        Opens file handles and reads headers into memory
-        """
-        self.sound_files = [sf.SoundFile(track.file_name)
-                            for track in self.loop.tracks]
-        for file in self.sound_files:
-            file.seek(cursor)
+    # def open_files(self, cursor: int = 0) -> None:
+    #     """Opens WAV files into SoundFile objects
+    #     Opens file handles and reads headers into memory
+    #     """
+    #     self.sound_files = [sf.SoundFile(track.file_name)
+    #                         for track in self.loop.tracks]
+    #     for file in self.sound_files:
+    #         file.seek(cursor)
 
     def read_to_list(self):
         """Reads multiple SoundFile objects to a list of numpy blocks
@@ -120,15 +133,16 @@ class WavReader:
         # start = time.perf_counter_ns()
         output_data = []
 
-        for i in range(0, len(self.sound_files)):
+        for i in range(0, len(self.timer.release_list)):
             if i == 0:
                 self.loop.audio_cursor += self.blocksize
-            block: np.ndarray = self.sound_files[i].read(self.blocksize)
+            block: np.ndarray = self.timer.release_list[i].read(self.blocksize)
             if not block.any():
                 # No more blocks to read, reset cursor to the beginning
-                self.sound_files[i].seek(0)
+                self.timer.release_list[i].seek(0)
                 if i == 0:
                     self.loop.audio_cursor = 0
             output_data.append(block)
+            self.timer.dec_waitlist()
         # print(f'WavReader.read_to_list: {time.perf_counter_ns() - start}')
         return output_data
