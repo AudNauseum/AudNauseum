@@ -11,6 +11,72 @@ from audnauseum.constants import BLOCK_SIZE, READER_QUEUE_SIZE
 MAX_CHANNELS = 2
 
 
+class ReleaseTimer():
+    '''Times the release of files to keep them in sync via a slip value.'''
+    total_blocks: int
+    loop: Loop
+    master_timer: int
+    sound_files: List[sf.SoundFiles]
+    waitlist: List[sf.SoundFile]
+    release_list: List[sf.SoundFile]
+
+    def __init__(self, loop, blocksize):
+        self.blocksize = blocksize
+        self.loop = loop
+        self.sound_files = get_sound_files()
+        self.master_timer = get_master_timer()
+        self.waitlist = generate_waitlist()
+        self.release_list = None
+
+    def get_sound_files(self):
+        for each in self.loop.tracks:
+            self.sound_files.append(sf.SoundFile(each.file_name))
+
+    def get_master_timer(self):
+        '''Find the longest file, and determine how many blocks it has including
+         slipped blocks'''
+        loop_length = 0
+        for i in range(0, len(self.loop.tracks)):
+            current_track_length = self.loop.tracks[i].fx.slip + \
+                self.sound_files[i].frames
+            if(current_track_length > loop_length):
+                loop_length = current_track_length
+        return math.ceil(loop_length/self.blocksize)
+
+    def generate_waitlist(self):
+        '''create an empty list of len(master_timer)'''
+        waitlist = [None] * master_timer
+        for i in range(0, len(self.loop.tracks)):
+            wait_index = self.loop.tracks[i].fx.slip / self.blocksize
+            self.insert_waitlist(wait_index, self.sound_files[i])
+
+    def dec_waitlist(self):
+        '''reduce the timer by one block, pop the front of the queue to released'''
+        current = self.waitlist.pop(0)
+        if(current is not None):
+            self.release.extend(current)
+        pass
+
+    def reset_timer(self):
+        self.sound_files = self.get_sound_files()
+        self.master_timer = self.get_master_timer()
+        self.waitlist = self.generate_waitlist()
+
+    ###########################################################################
+    # HELPER FUNCTIONS
+    ###########################################################################
+    def insert_waitlist(self, i, sound_file):
+        '''insert the soundfile into the wait_list at the given index'''
+        if(self.waitlist[i] is not None):
+                self.waitlist[i] += [sound_file]
+            else
+                self.waitlist[i] = [sound_file]
+
+    def release(self, sound_file):
+        '''Appends released tracks to the release_list to feed the WavReader'''
+        self.release_list.append(sound_file)
+
+
 class WavReader:
     """Reads an arbitrary number of WAV files into iterable numpy array
 
@@ -65,38 +131,4 @@ class WavReader:
                     self.loop.audio_cursor = 0
             output_data.append(block)
         # print(f'WavReader.read_to_list: {time.perf_counter_ns() - start}')
-        return output_data
-
-    def read_to_3d_array(self):
-        """Reads multiple SoundFile objects to a 3d numpy array
-
-        Returns a 3d array of form:
-        (BLOCK_SIZE, CHANNELS, X)
-
-        Where X is the number of SoundFile objects read.
-
-        TODO: Implement and see if this is faster than using a list
-        """
-        # Track stereo and mono channels in order, to ensure that we write to
-        # the correct number of rows
-        channel_map = np.empty(len(self.sound_files), dtype=int)
-        channel_map[0] = 0
-        for i in range(1, len(self.sound_files)):
-            channel_map[i] = channel_map[i-1] + self.sound_files[i-1].channels
-        # print(f'Channel_Map: {channel_map}')
-        output_data = np.zeros(
-            (self.blocksize, MAX_CHANNELS, len(self.sound_files)))
-        for i in range(0, len(self.sound_files)):
-            block: np.ndarray = self.sound_files[i].read(self.blocksize)
-            # print(f'Block shape')
-            # print(block.shape)
-            if not block.any():
-                # No more blocks to read, reset cursor to the beginning
-                self.sound_files[i].seek(0)
-
-            # print(output_data.shape)
-            elif(block.shape[0] < self.blocksize):
-                print(f'Block Size of last block: {block.shape[0]}')
-            output_data[..., i][0:block.shape[0]] = block
-            # print(output_data)
         return output_data
