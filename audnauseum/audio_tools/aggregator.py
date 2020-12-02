@@ -92,50 +92,51 @@ class Aggregator:
 
 
 def aggregate_3d_array(self, numpy_3d_array):
-        """Aggregates a 3d array to a summed 2d array
+    """Aggregates a 3d array to a summed 2d array
 
-        Aggregates a 3d array of shape (BLOCK_SIZE, CHANNELS, X) into a single
-        array of shape (BLOCK_SIZE, CHANNELS).
+    Aggregates a 3d array of shape (BLOCK_SIZE, CHANNELS, X) into a single
+    array of shape (BLOCK_SIZE, CHANNELS).
 
-        (BLOCK_SIZE, CHANNELS, X) --> (BLOCK_SIZE, CHANNELS)
+    (BLOCK_SIZE, CHANNELS, X) --> (BLOCK_SIZE, CHANNELS)
 
-        TODO: Implement and see if this is faster than using a list
-        """
-        # Uncomment to time how long this operation takes
-        start = time.perf_counter_ns()
-        num_tracks = numpy_3d_array.shape[2]
-        max_blocksize = self.find_max_blocksize_3d(numpy_3d_array)
-        # print(self.find_max_blocksize_3d(numpy_3d_array))
+    TODO: Implement and see if this is faster than using a list
+    """
+    # Uncomment to time how long this operation takes
+    start = time.perf_counter_ns()
+    num_tracks = numpy_3d_array.shape[2]
+    max_blocksize = self.find_max_blocksize_3d(numpy_3d_array)
+    # print(self.find_max_blocksize_3d(numpy_3d_array))
 
-        # Pre-allocates (malloc) the array under the hood
-        output_data: np.ndarray = np.zeros((max_blocksize, 2))
-        for block in range(numpy_3d_array.shape[-1]):
-            current_block_size = numpy_3d_array[..., block].shape[0]
-            if current_block_size != max_blocksize:
-                padding = np.zeros(
-                    (max_blocksize - current_block_size, 2))
-                numpy_3d_array[..., block] = np.append(
-                    numpy_3d_array[..., block], padding, 0)
-            # Add element-wise in-place to reuse allocated memory
-            output_data = np.sum(numpy_3d_array, axis=2)
+    # Pre-allocates (malloc) the array under the hood
+    output_data: np.ndarray = np.zeros((max_blocksize, 2))
+    for block in range(numpy_3d_array.shape[-1]):
+        current_block_size = numpy_3d_array[..., block].shape[0]
+        if current_block_size != max_blocksize:
+            padding = np.zeros(
+                (max_blocksize - current_block_size, 2))
+            numpy_3d_array[..., block] = np.append(
+                numpy_3d_array[..., block], padding, 0)
+        # Add element-wise in-place to reuse allocated memory
+        output_data = np.sum(numpy_3d_array, axis=2)
 
-        np.multiply(output_data, 1. / num_tracks, output_data)
-        # print(f'Aggregator.aggregate_list: {time.perf_counter_ns() - start}')
+    np.multiply(output_data, 1. / num_tracks, output_data)
+    # print(f'Aggregator.aggregate_list: {time.perf_counter_ns() - start}')
 
-        print(time.perf_counter_ns() - start)
-        return output_data
+    print(time.perf_counter_ns() - start)
+    return output_data
 
-    def find_max_blocksize_3d(self, numpy_3d_array) -> int:
-        """Finds the largest blocksize in a list of numpy arrays
 
-        In case the arrays aren't exactly the same size, return
-        the size of the largest array.
-        """
-        max_blocksize = 0
-        for block in range(numpy_3d_array.shape[-1]):
-            # print("Numpy block")
-            # print(numpy_3d_array[..., block])
-            current_block_length = numpy_3d_array[..., block].shape[0]
-            if current_block_length > max_blocksize:
-                max_blocksize = current_block_length
-        return max_blocksize
+def find_max_blocksize_3d(self, numpy_3d_array) -> int:
+    """Finds the largest blocksize in a list of numpy arrays
+
+    In case the arrays aren't exactly the same size, return
+    the size of the largest array.
+    """
+    max_blocksize = 0
+    for block in range(numpy_3d_array.shape[-1]):
+        # print("Numpy block")
+        # print(numpy_3d_array[..., block])
+        current_block_length = numpy_3d_array[..., block].shape[0]
+        if current_block_length > max_blocksize:
+            max_blocksize = current_block_length
+    return max_blocksize
