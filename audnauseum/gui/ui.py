@@ -60,8 +60,14 @@ def connect_transport_control_buttons(ui, looper: Looper):
     Add listeners to each button in transport controls group
     """
     ui.pushButton_record.clicked.connect(looper.record)
+    ui.pushButton_record.clicked.connect(
+        lambda: update_track_list(ui, looper))
     ui.pushButton_play.clicked.connect(looper.play)
+    ui.pushButton_play.clicked.connect(
+        lambda: update_track_list(ui, looper))
     ui.pushButton_stop.clicked.connect(looper.stop)
+    ui.pushButton_stop.clicked.connect(
+        lambda: update_track_list(ui, looper))
 
     ui.pushButton_record.clicked.connect(
         lambda: transport_status(ui, looper, 'record'))
@@ -234,14 +240,17 @@ def add_track(ui, looper: Looper) -> bool:
 
 def rem_track(ui, looper: Looper) -> bool:
 
-    if not looper.state == LooperStates.IDLE:
+    if looper.state == LooperStates.LOADED:
         track = get_track(ui)
         rel_path = get_rel_path(track.text())
         looper.remove_track(rel_path)
         return True
-
-    show_popup(ui)
-    return False
+    elif looper.state == LooperStates.IDLE:
+        show_popup(ui, 'Nothing to remove')
+        return False
+    else:
+        show_popup(ui, 'Must be stopped')
+        return False
 
 
 def get_rel_path(abs_path) -> str:
@@ -254,10 +263,10 @@ def get_rel_path(abs_path) -> str:
 # Modified from example provided in PyQt5 video:  https://www.youtube.com/watch?v=GkgMTyiLtWk
 
 
-def show_popup(ui):
+def show_popup(ui, message):
     msg = QMessageBox()
     msg.setWindowTitle("Error")
-    msg.setText("A loop must be loaded.")
+    msg.setText(message)
 
     msg.exec_()
 
