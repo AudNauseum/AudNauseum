@@ -26,6 +26,8 @@ class Recorder(object):
         self.loop = loop
         if(self.loop is None):
             self.loop = Loop()
+        self.input_overflows = 0
+        self.thread = None
 
     def create_stream(self, samplerate=44100):
         """Creates the sounddevice InputStream for recording
@@ -60,7 +62,7 @@ class Recorder(object):
 
     def on_rec(self):
         current_block = self.loop.audio_cursor
-        print(current_block)
+        print(f'Audio Cursor at Record press: {current_block}')
         self.recording = True
         # create directory if not present
         if not os.path.exists(self.directory):
@@ -90,10 +92,12 @@ class Recorder(object):
         self.recording = False
         self.wait_for_thread()
         t = Track(self.current_file)
+        print(t.file_name)
         self.loop.tracks.append(t)
+        print(f'There are: {len(self.loop.tracks)} tracks in loop.')
 
     def wait_for_thread(self):
-        self.after(10, self._wait_for_thread)
+        self.after(0.1, self._wait_for_thread)
 
     def _wait_for_thread(self):
         if self.thread.is_alive():

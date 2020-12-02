@@ -153,7 +153,7 @@ class Looper:
         else:
             self.loop = loop
 
-        self.recorder = None
+        self.recorder = Recorder(loop=self.loop)
         self.player = Player()
         self.reader = WavReader(loop=self.loop)
         self.aggregator = Aggregator(
@@ -240,7 +240,8 @@ class Looper:
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
-        self.recorder = Recorder()
+        self.recorder = None
+        self.recorder = Recorder(loop=self.loop)
         self.recorder.on_rec()
 
     def stop_recording(self, *args):

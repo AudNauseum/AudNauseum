@@ -72,7 +72,7 @@ class Aggregator:
             # Add element-wise in-place to reuse allocated memory
             np.add(output_data, block, output_data)
 
-        np.multiply(output_data, 1. / math.sqrt(num_tracks), output_data)
+        np.multiply(output_data, 1. / num_tracks, output_data)
         # print(f'Aggregator.aggregate_list: {time.perf_counter_ns() - start}')
         # print(time.perf_counter_ns() - start)
         return output_data
