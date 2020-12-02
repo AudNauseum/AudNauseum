@@ -240,21 +240,12 @@ class Looper:
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
-        if self.recorder is not None:
-            self.recorder = None
-        # if self.loop.file_path:
-        #     directory = os.path.splitext(
-        #         os.path.basename(self.loop.file_path))[0]
-        #     self.recorder = Recorder(directory=directory,
-        #                              track_counter=self.loop.track_count)
-        # else:
         self.recorder = Recorder()
         self.recorder.on_rec()
 
     def stop_recording(self, *args):
         '''Creates a Track from recording, appends to loop'''
-        t = Track(self.recorder.on_stop())
-        self.loop.tracks.append(t)
+        self.recorder.on_stop()
 
     def start_playing_and_recording(self, *args):
         self.start_recording()

@@ -8,22 +8,24 @@ import sounddevice as sd
 import os
 import queue
 import threading
+from audnauseum.data_models.loop import Loop
+from audnauseum.data_models.track import Track
 
 import numpy as np
 assert np
 
 
 class Recorder(object):
-    def __init__(self, directory=None):
-        if directory is None:
-            self.directory = 'resources/recordings'
-        else:
-            self.directory = directory
+    def __init__(self, directory=None, loop=None):
+        self.directory = 'resources/recordings'
         self.stream = None
         self.create_stream()
         self.recording = self.previously_recording = False
         self.audio_q = queue.Queue()
         self.current_file: str
+        self.loop = loop
+        if(self.loop is None):
+            self.loop = Loop()
 
     def create_stream(self, samplerate=44100):
         """Creates the sounddevice InputStream for recording
@@ -57,6 +59,8 @@ class Recorder(object):
                 self.previously_recording = False
 
     def on_rec(self):
+        current_block = self.loop.audio_cursor
+        print(current_block)
         self.recording = True
         # create directory if not present
         if not os.path.exists(self.directory):
@@ -85,8 +89,8 @@ class Recorder(object):
     def on_stop(self, *args):
         self.recording = False
         self.wait_for_thread()
-        print(f'{self.current_file=}')
-        return self.current_file
+        t = Track(self.current_file)
+        self.loop.tracks.append(t)
 
     def wait_for_thread(self):
         self.after(10, self._wait_for_thread)
@@ -110,18 +114,3 @@ class Recorder(object):
                 if data is None:
                     break
                 f.write(data)
-
-
-def main():
-    R = Recorder()
-    R.on_rec()
-    sleep(5)
-    R.on_stop()
-    print("record next file")
-    R.on_rec()
-    sleep(5)
-    R.on_stop()
-
-
-if __name__ == '__main__':
-    main()

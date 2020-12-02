@@ -54,11 +54,15 @@ class WavReader:
         # start = time.perf_counter_ns()
         output_data = []
 
-        for file in self.sound_files:
-            block: np.ndarray = file.read(self.blocksize)
+        for i in range(0, len(self.sound_files)):
+            if i == 0:
+                self.loop.audio_cursor += self.blocksize
+            block: np.ndarray = self.sound_files[i].read(self.blocksize)
             if not block.any():
                 # No more blocks to read, reset cursor to the beginning
-                file.seek(0)
+                self.sound_files[i].seek(0)
+                if i == 0:
+                    self.loop.audio_cursor = 0
             output_data.append(block)
         # print(f'WavReader.read_to_list: {time.perf_counter_ns() - start}')
         return output_data
