@@ -1,14 +1,14 @@
-from audnauseum.data_models.player import Player
+from audnauseum.audio_tools.wav_reader import WavReader
+from audnauseum.audio_tools.player import Player
 from audnauseum.data_models.loop import Loop
 from audnauseum.data_models.track import Track
 from audnauseum.data_models.complex_decoder import ComplexDecoder
-from audnauseum.data_models.recorder import Recorder
+from audnauseum.audio_tools.recorder import Recorder
+from audnauseum.audio_tools.aggregator import Aggregator
 from transitions import Machine
-import os
+import sounddevice as sd
 import enum
 import json
-import sounddevice as sd
-
 
 
 class LooperStates(enum.Enum):
@@ -42,6 +42,8 @@ class Looper:
     player: Player
     machine: Machine
     recorder: Recorder
+    aggregator: Aggregator
+    reader: WavReader
 
     transitions = [
         # idle state transitions
@@ -112,7 +114,7 @@ class Looper:
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
-            'dest': LooperStates.PAUSED},
+            'dest': LooperStates.PAUSED, 'before': 'stop_playing_and_recording'},
         {'trigger': 'stop', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.LOADED, 'before': 'stop_playing_and_recording'},
         {'trigger': 'metronome', 'source': LooperStates.PLAYING_AND_RECORDING,
@@ -141,7 +143,7 @@ class Looper:
          'dest': 'None'},  # Not a transition
     ]
 
-    def __init__(self, volume=1, pan=0.5, loop=None):
+    def __init__(self, loop=None):
         self.machine = Machine(model=self, states=LooperStates,
                                initial=LooperStates.IDLE,
                                transitions=Looper.transitions,
@@ -157,6 +159,9 @@ class Looper:
 
         self.recorder = None
         self.player = Player()
+        self.reader = WavReader(loop=self.loop)
+        self.aggregator = Aggregator(
+            loop=self.loop, player_queue=self.player.input_queue, reader=self.reader)
 
         # Create a default (empty track) loop upon startup & load it
         default_path = './resources/json/default.json'
@@ -165,13 +170,10 @@ class Looper:
 
     def set_default_channels(self):
         """Detects and sets the default sounddevice channels
-
         Checks the Host APIs of the user's OS audio settings for the
         default input and output devices.
-
         Sets the sounddevice default channels tuple to the capabilities
         of the input and output devices.
-
         On Linux, the default input/output devices are often a "virtual"
         device using ALSA and can have 32, 64, or even 128 channels. This
         value is clamped to 2 for what the physical device can support.
@@ -197,6 +199,9 @@ class Looper:
         try:
             json_data = self.read_json(file_path)
             self.loop = json.loads(json_data, cls=ComplexDecoder)
+            self.reader.loop = self.loop
+            self.aggregator.loop = self.loop
+            self.player.loop = self.loop
             return True
         except Exception as e:
             print(
@@ -256,29 +261,22 @@ class Looper:
         and plays them. Should be used in playing and playing_and_recording
         states.
         '''
-        self.player.play(self.loop)
+        self.aggregator.start()
+        self.player.play()
 
     def stop_playing(self, *args):
         """Stops the current playing output"""
+        self.aggregator.stop()
         self.player.stop()
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
-        if self.recorder is not None:
-            self.recorder = None
-        # if self.loop.file_path:
-        #     directory = os.path.splitext(
-        #         os.path.basename(self.loop.file_path))[0]
-        #     self.recorder = Recorder(directory=directory,
-        #                              track_counter=self.loop.track_count)
-        # else:
         self.recorder = Recorder()
         self.recorder.on_rec()
 
     def stop_recording(self, *args):
         '''Creates a Track from recording, appends to loop'''
-        t = Track(self.recorder.on_stop())
-        self.loop.tracks.append(t)
+        self.recorder.on_stop()
 
     def start_playing_and_recording(self, *args):
         self.start_recording()
@@ -481,4 +479,5 @@ class Looper:
 
         if self.recorder and self.recorder.recording:
             self.recorder.on_stop()
+
         print('Goodbye!')
