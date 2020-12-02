@@ -62,14 +62,18 @@ class Recorder(object):
 
     def on_rec(self):
         current_block = self.loop.audio_cursor
+
         print(f'Audio Cursor at Record press: {current_block}')
         self.recording = True
         # create directory if not present
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
+        now = None
+        filename = None
         now = datetime.now()
         filename = self.directory + '/track_' + \
             now.strftime('%Y%m%d%H%M%S') + '.wav'
+        self.current_file = None
         self.current_file = filename
 
         if self.audio_q.qsize() != 0:
@@ -93,7 +97,7 @@ class Recorder(object):
         self.wait_for_thread()
         t = Track(self.current_file)
         print(t.file_name)
-        self.loop.tracks.append(t)
+        self.loop.append(t)
         print(f'There are: {len(self.loop.tracks)} tracks in loop.')
 
     def wait_for_thread(self):
