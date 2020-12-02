@@ -1,14 +1,13 @@
-from audnauseum.data_models.player import Player
+from audnauseum.audio_tools.player import Player
 from audnauseum.data_models.loop import Loop
 from audnauseum.data_models.track import Track
 from audnauseum.data_models.complex_decoder import ComplexDecoder
-from audnauseum.data_models.recorder import Recorder
+from audnauseum.audio_tools.recorder import Recorder
 from transitions import Machine
 import os
 import enum
 import json
 import sounddevice as sd
-
 
 
 class LooperStates(enum.Enum):
