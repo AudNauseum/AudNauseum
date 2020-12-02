@@ -12,9 +12,8 @@ from audnauseum.data_models.loop import Loop
 class Aggregator:
     """Aggregator receives multiple numpy arrays, combines, and applies FX
 
-    The Aggregator requires a reference to the current Loop, the queue
-    that is populated by the WavReader, and the queue that is read by
-    the Player.
+    The Aggregator requires a reference to the current Loop, the WavReader, 
+    and the queue that is read by the Player.
 
     A new instance of Aggregator is required each time a Loop is set.
     """
@@ -98,8 +97,6 @@ def aggregate_3d_array(self, numpy_3d_array):
     array of shape (BLOCK_SIZE, CHANNELS).
 
     (BLOCK_SIZE, CHANNELS, X) --> (BLOCK_SIZE, CHANNELS)
-
-    TODO: Implement and see if this is faster than using a list
     """
     # Uncomment to time how long this operation takes
     start = time.perf_counter_ns()
@@ -127,7 +124,7 @@ def aggregate_3d_array(self, numpy_3d_array):
 
 
 def find_max_blocksize_3d(self, numpy_3d_array) -> int:
-    """Finds the largest blocksize in a list of numpy arrays
+    """Finds the largest blocksize in a 3d numpy array
 
     In case the arrays aren't exactly the same size, return
     the size of the largest array.
