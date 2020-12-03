@@ -97,6 +97,8 @@ class Looper:
         # playing state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING,
          'dest': LooperStates.PLAYING_AND_RECORDING},
+        {'trigger': 'add_track', 'source': LooperStates.PLAYING,
+         'dest': '=', 'after': 'load_track'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
             'dest': LooperStates.PAUSED},
         {'trigger': 'stop', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
@@ -111,6 +113,8 @@ class Looper:
         # playing_and_recording state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
+        {'trigger': 'add_track', 'source': LooperStates.PLAYING_AND_RECORDING,
+         'dest': '=', 'after': 'load_track'},
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
