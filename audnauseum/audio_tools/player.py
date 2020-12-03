@@ -61,17 +61,20 @@ class Player:
         self.stream.close()
         if self.input_queue.qsize() != 0:
             self.input_queue.task_done()
-        self.empty_queue()
+        self.empty_queue(self.input_queue)
+        if self.last_block_notifier_queue.qsize() != 0:
+            self.last_block_notifier_queue.task_done()
+        self.empty_queue(self.last_block_notifier_queue)
 
-    def empty_queue(self):
+    def empty_queue(self, queue_to_empty: queue.Queue):
         """Empty the queue of audio blocks
 
         Python doesn't seem to actually provide a method to empty a queue
         """
-        while self.input_queue.qsize() != 0:
+        while queue_to_empty.qsize() != 0:
             try:
-                self.input_queue.get_nowait()
-                self.input_queue.task_done()
+                queue_to_empty.get_nowait()
+                queue_to_empty.task_done()
             except queue.Empty:
                 pass
             except ValueError:
