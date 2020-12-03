@@ -184,10 +184,9 @@ class Looper:
         value is clamped to 2 for what the physical device can support.
         """
         for api in sd.query_hostapis():
-            input_device = api.get('default_input_device', None)
-            output_device = api.get('default_output_device', None)
-            if input_device and input_device >= 0 and \
-                    output_device and output_device >= 0:
+            input_device = api.get('default_input_device')
+            output_device = api.get('default_output_device')
+            if input_device >= 0 and output_device >= 0:
                 devices = sd.query_devices()
                 input_channels = devices[input_device]['max_input_channels']
                 if input_channels > 2:
