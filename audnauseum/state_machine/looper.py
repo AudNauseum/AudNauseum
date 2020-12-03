@@ -1,6 +1,7 @@
 from audnauseum.audio_tools.wav_reader import WavReader
 from audnauseum.audio_tools.player import Player
 from audnauseum.data_models.loop import Loop
+from audnauseum.audio_tools.loop_timer import Timer
 from audnauseum.data_models.track import Track
 from audnauseum.data_models.complex_decoder import ComplexDecoder
 from audnauseum.audio_tools.recorder import Recorder
@@ -160,8 +161,8 @@ class Looper:
             self.loop = Loop()
         else:
             self.loop = loop
-
-        self.recorder = Recorder(loop=self.loop)
+        self.timer = Timer(self.loop)
+        self.recorder = Recorder(loop=self.loop, timer=self.timer)
         self.player = Player()
         self.reader = WavReader(loop=self.loop)
         self.aggregator = Aggregator(

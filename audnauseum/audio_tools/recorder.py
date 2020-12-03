@@ -10,13 +10,14 @@ import queue
 import threading
 from audnauseum.data_models.loop import Loop
 from audnauseum.data_models.track import Track
+from audnauseum.audio_tools.loop_timer import Timer
 
 import numpy as np
 assert np
 
 
 class Recorder(object):
-    def __init__(self, directory=None, loop=None):
+    def __init__(self, directory=None, loop=None, timer=None):
         self.directory = 'resources/recordings'
         self.stream = None
         self.create_stream()
@@ -26,8 +27,10 @@ class Recorder(object):
         self.loop = loop
         if(self.loop is None):
             self.loop = Loop()
+        self.timer = timer
         self.input_overflows = 0
         self.thread = None
+        self.current_tick = 0
 
     def create_stream(self, samplerate=44100):
         """Creates the sounddevice InputStream for recording
@@ -61,9 +64,9 @@ class Recorder(object):
                 self.previously_recording = False
 
     def on_rec(self):
-        current_block = self.loop.audio_cursor
+        self.current_tick = self.timer.tick_counter
 
-        print(f'Audio Cursor at Record press: {current_block}')
+        print(f'Tick at Record press: {current_tick}')
         self.recording = True
         # create directory if not present
         if not os.path.exists(self.directory):
@@ -93,7 +96,8 @@ class Recorder(object):
     def on_stop(self, *args):
         self.recording = False
         self.wait_for_thread()
-        t = Track(self.current_file)
+        t = Track(self.current_file, starting_tick=self.current_tick)
+        self.current_tick = 0
         print(t.file_name)
         self.loop.append(t)
         print(f'There are: {len(self.loop.tracks)} tracks in loop.')
