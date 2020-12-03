@@ -235,13 +235,16 @@ class Looper:
         print(f'{self.state=}')
 
     def load_track(self, file_path: str):
-        '''
-        Load a Track into the looper.
-        '''
+        """Load a Track into the looper.
+
+        If the Looper is currently playing, opens the respective file
+        handle to start playback for that track.
+        """
         # TODO beats are currently hard-coded to be 20 for all new Tracks
         try:
             x = Track(file_path, beats=20)
             self.loop.append(x)
+            self.aggregator.add_track(file_path)
             return True
         except Exception as e:
             print(
@@ -249,11 +252,14 @@ class Looper:
             return False
 
     def unload_track(self, file_path: str):
-        '''
-        Remove a Track from the looper.
-        '''
+        """Remove a Track from the looper.
+
+        If the Looper is currently playing, closes the respective
+        file handle to cease playback for that track.
+        """
         try:
             self.loop.remove(file_path)
+            self.aggregator.remove_track(file_path)
             return True
         except Exception as e:
             print(
@@ -272,6 +278,7 @@ class Looper:
         """Stops the current playing output"""
         self.aggregator.stop()
         self.player.stop()
+        print('stopped playing')
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''

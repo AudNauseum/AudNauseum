@@ -2,7 +2,6 @@ from audnauseum.audio_tools.wav_reader import WavReader
 from threading import Thread
 from queue import Queue
 import time
-import math
 
 import numpy as np
 
@@ -12,7 +11,7 @@ from audnauseum.data_models.loop import Loop
 class Aggregator:
     """Aggregator receives multiple numpy arrays, combines, and applies FX
 
-    The Aggregator requires a reference to the current Loop, the WavReader, 
+    The Aggregator requires a reference to the current Loop, the WavReader,
     and the queue that is read by the Player.
 
     A new instance of Aggregator is required each time a Loop is set.
@@ -37,6 +36,8 @@ class Aggregator:
 
     def stop(self):
         self.is_running = False
+        self.thread.join()
+        self.close_all_file_handles()
 
     def run(self):
         while self.is_running:
@@ -46,6 +47,34 @@ class Aggregator:
             # input_3d_data = self.reader.read_to_3d_array()
             # output_3d_data = self.aggregate_3d_array(input_3d_data)
             # self.player_queue.put(output_3d_data)
+
+    def add_track(self, file_path):
+        """Opens a file when a track is added during playback
+
+        Calls the reader to open the specified track that was
+        added.
+        """
+        self.reader.open_file(file_path)
+
+    def remove_track(self, file_path):
+        """Closes an open file handle when a track is removed during playback
+
+        Called to stop the reading of a track file when the track is
+        removed using the UI. File handles are kept open for performance
+        and not checked on every read, so this signal closes the necessary
+        file.
+        """
+        if self.is_running:
+            self.reader.close_file(file_path)
+
+    def close_all_file_handles(self):
+        """Closes all file handles to tracks
+
+        Called on cleanup to ensure open resources get closed
+        """
+        for file in self.reader.sound_files:
+            file.close()
+        self.reader.sound_files = []
 
     def aggregate_list(self, numpy_arrays) -> np.ndarray:
         """Aggregates a list of numpy arrays into a single numpy array
