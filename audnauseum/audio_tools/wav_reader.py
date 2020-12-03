@@ -1,90 +1,32 @@
 import soundfile as sf
+import sounddevice as sd
 import numpy as np
 
 from typing import List
-
-import math
+from queue import Queue
 
 from audnauseum.data_models.loop import Loop
 from audnauseum.constants import BLOCK_SIZE
 
-MAX_CHANNELS = 2
 
+class WavFile:
+    """Representation of an open file being read
 
-class ReleaseTimer():
-    '''Times the release of files to keep them in sync via a slip value.'''
-    total_blocks: int
-    loop: Loop
-    master_timer: int
-    sound_files: List[sf.SoundFile]
-    waitlist: List[sf.SoundFile]
-    release_list: List[sf.SoundFile]
+    Tracks variables necessary to determine when to read blocks from the file.
+    """
+    sound_file: sf.SoundFile
+    slip: int
+    finished_reading: bool
+    is_slipping: bool
 
-    def __init__(self, loop, blocksize):
-        self.blocksize = blocksize
-        self.loop = loop
-        self.sound_files = self.get_sound_files()
-        self.master_timer = self.get_master_timer()
-        self.waitlist = self.generate_waitlist()
-        self.release_list = None
-        self.release_list = []
+    def __init__(self, sound_file: sf.SoundFile = None, slip: int = 0):
+        self.sound_file = sound_file
+        self.slip = slip
+        self.finished_reading = False
+        self.is_slipping = slip > 0
 
-    def get_sound_files(self, cursor=0):
-        if(len(self.loop.tracks) > 0):
-            for track in self.loop.tracks:
-                self.sound_files.append(sf.SoundFile(track.file_name))
-            for each in self.sound_files:
-                each.seek(cursor)
-        else:
-            self.sound_files = []
-
-    def get_master_timer(self):
-        '''Find the longest file, and determine how many blocks it has including
-         slipped blocks'''
-        loop_length = 0
-        for i in range(0, len(self.loop.tracks)):
-            current_track_length = self.loop.tracks[i].fx.slip + \
-                self.sound_files[i].frames
-            if(current_track_length > loop_length):
-                loop_length = current_track_length
-        return math.ceil(loop_length/self.blocksize)
-
-    def generate_waitlist(self):
-        '''create an empty list of len(master_timer)'''
-        # waitlist = [None] * self.master_timer
-        for i in range(0, len(self.loop.tracks)):
-            wait_index = self.loop.tracks[i].fx.slip / self.blocksize
-            if(wait_index == 0):
-                self.release_list.append(self.sound_files[i])
-            else:
-                self.insert_waitlist(wait_index, self.sound_files[i])
-
-    def dec_waitlist(self):
-        '''reduce the timer by one block, pop the front of the queue to released'''
-        current = self.waitlist.pop(0)
-        if(len(self.waitlist) == 0):
-            self.reset_timer()
-        if(current is not None):
-            self.release_list.extend(current)
-
-    def reset_timer(self):
-        self.sound_files = self.get_sound_files()
-        self.master_timer = self.get_master_timer()
-        self.waitlist = self.generate_waitlist()
-
-    ###########################################################################
-    # HELPER FUNCTIONS
-    ###########################################################################
-    def insert_waitlist(self, i, sound_file):
-        '''insert the soundfile into the wait_list at the given index'''
-        if(self.waitlist[i] is not None):
-            self.waitlist[i] += [sound_file]
-        else:
-            self.waitlist[i] = [sound_file]
-
-    def release(self, sound_file):
-        '''Appends released tracks to the release_list to feed the WavReader'''
-        self.release_list.append(sound_file)
+    def __repr__(self):
+        return f'{self.sound_file.name}: {self.slip=}, {self.is_slipping=}, {self.finished_reading=}'
 
 
 class WavReader:
@@ -94,10 +36,12 @@ class WavReader:
 
     loop: Loop
     blocksize: int
-    sound_files: List[sf.SoundFile]
-    timer = ReleaseTimer
+    files: List[WavFile]
+    tracks_to_add: Queue
+    read_cursor: int
+    last_block_notifier_queue: Queue
 
-    def __init__(self, loop: Loop, blocksize=BLOCK_SIZE) -> None:
+    def __init__(self, loop: Loop, last_block_notifier_queue: Queue, blocksize=BLOCK_SIZE) -> None:
         """Initialize the WavReader
 
         The WavReader requires a reference to the current Loop.
@@ -106,28 +50,31 @@ class WavReader:
         """
         self.loop = loop
         self.blocksize = blocksize
-        self.sound_files = None
-        self.timer = ReleaseTimer(self.loop, self.blocksize)
+        self.files = []
+        self.tracks_to_add = Queue()
+        self.last_block_notifier_queue = last_block_notifier_queue
+        self.read_cursor = 0
 
-    def open_files(self, cursor: int = 0) -> None:
+    def open_files(self) -> None:
         """Opens WAV files into SoundFile objects
 
         Opens file handles and reads headers into memory
-        based on the current loop
+        based on the current loop. Sets the audio cursor to the slip value
         """
-        self.sound_files = [sf.SoundFile(track.file_name)
-                            for track in self.loop.tracks]
-        for file in self.sound_files:
-            file.seek(cursor)
+        self.files = [WavFile(sound_file=sf.SoundFile(track.file_name), slip=track.fx.slip)
+                      for track in self.loop.tracks]
 
-    def open_file(self, file_path: str):
-        """Opens a single WAV file into the currently SoundFile objects
+        for file in self.files:
+            file.sound_file.seek(0)
 
-        Meant to call while the Looper is actively playing,
-        this function can add a new track during playback.
+    def add_track(self, file_path: str, slip: int = 0):
+        """Adds a track to be played the next time around the loop
+
+        The track has been added to the Loop, play it from the start
+        the next time around.
         """
-        file = sf.SoundFile(file_path)
-        self.sound_files.append(file)
+        file = WavFile(sound_file=sf.SoundFile(file_path), slip=slip)
+        self.tracks_to_add.put(file)
 
     def close_file(self, file_path):
         """Closes an open file handle when a track is removed during playback
@@ -137,13 +84,41 @@ class WavReader:
         and not checked on every read, so this signal closes the necessary
         file.
         """
-        for index, file in enumerate(self.sound_files):
-            if file.name == file_path:
-                file.close()
-                del self.sound_files[index]
+        for index, file in enumerate(self.files):
+            if file.sound_file.name == file_path:
+                file.sound_file.close()
+                del self.files[index]
                 break
 
-    def read_to_list(self):
+    def close_all_files(self):
+        """Closes all file handles
+
+        Closes all open resources, called upon loading a new loop or
+        exiting the program.
+        """
+        for file in self.files:
+            file.sound_file.close()
+        self.files = []
+
+    def restart_loop(self):
+        """Called to restart the reading of files at the beginning
+
+        Starts the reading of files from the beginning, resets cursors,
+        and checks for new files to read from.
+        """
+        # Any Tracks that were added to the Loop should now be read
+        while self.tracks_to_add.qsize() != 0:
+            self.files.append(self.tracks_to_add.get())
+
+        # Reset the file to initial state
+        for file in self.files:
+            file.sound_file.seek(0)
+            file.is_slipping = file.slip > 0
+            file.finished_reading = False
+
+        self.read_cursor = 0
+
+    def read_to_list(self) -> List[np.ndarray]:
         """Reads multiple SoundFile objects to a list of numpy blocks
 
         Reads the SoundFile objects block-wise into a list of numpy arrays.
@@ -151,20 +126,38 @@ class WavReader:
         Returns a list of form:
         [(BLOCK_SIZE, CHANNELS), (BLOCK_SIZE, CHANNELS), ...]
         """
-        # Uncomment to time how long this operation takes
-        # start = time.perf_counter_ns()
         output_data = []
+        is_last_block = False
 
-        for i in range(0, len(self.timer.release_list)):
-            if i == 0:
-                self.loop.audio_cursor += self.blocksize
-            block: np.ndarray = self.timer.release_list[i].read(self.blocksize)
-            if not block.any():
-                # No more blocks to read, reset cursor to the beginning
-                self.timer.release_list[i].seek(0)
-                if i == 0:
-                    self.loop.audio_cursor = 0
-            output_data.append(block)
-            self.timer.dec_waitlist()
-        # print(f'WavReader.read_to_list: {time.perf_counter_ns() - start}')
+        for file in self.files:
+            # Check if the file is still slipping
+            if file.is_slipping and self.read_cursor > file.slip:
+                file.is_slipping = False
+
+            if file.finished_reading or file.is_slipping:
+                # Nothing to play, send a zero array instead
+                block: np.ndarray = np.zeros(
+                    (self.blocksize, sd.default.channels[1]))
+                output_data.append(block)
+            else:
+                block: np.ndarray = file.sound_file.read(self.blocksize)
+                if not block.any():
+                    # No more blocks to read, mark it as done
+                    file.finished_reading = True
+                output_data.append(block)
+
+        self.read_cursor += self.blocksize
+
+        # Restart the loop if all tracks are finished reading
+        if all(file.finished_reading for file in self.files):
+            self.restart_loop()
+            is_last_block = True
+
+        self.last_block_notifier_queue.put(is_last_block)
+        if is_last_block:
+            # Remove an item from the queue if this is the last block
+            # The aggregator won't put an item in the queue on the empty (last)
+            # block, so remove an item here to keep the queues in sync.
+            self.last_block_notifier_queue.get()
+
         return output_data
