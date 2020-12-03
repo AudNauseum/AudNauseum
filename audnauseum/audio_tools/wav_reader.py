@@ -24,11 +24,10 @@ class ReleaseTimer():
     def __init__(self, loop, blocksize):
         self.blocksize = blocksize
         self.loop = loop
+        self.release_list = []
         self.sound_files = self.get_sound_files()
         self.master_timer = self.get_master_timer()
         self.waitlist = self.generate_waitlist()
-        self.release_list = None
-        self.release_list = []
 
     def get_sound_files(self, cursor=0):
         if(len(self.loop.tracks) > 0):
@@ -59,6 +58,7 @@ class ReleaseTimer():
                 self.release_list.append(self.sound_files[i])
             else:
                 self.insert_waitlist(wait_index, self.sound_files[i])
+        print(self.release_list)
 
     def dec_waitlist(self):
         '''reduce the timer by one block, pop the front of the queue to released'''
@@ -72,10 +72,12 @@ class ReleaseTimer():
         self.sound_files = self.get_sound_files()
         self.master_timer = self.get_master_timer()
         self.waitlist = self.generate_waitlist()
+        print(f'Release List: {self.release_list}')
 
     ###########################################################################
     # HELPER FUNCTIONS
     ###########################################################################
+
     def insert_waitlist(self, i, sound_file):
         '''insert the soundfile into the wait_list at the given index'''
         if(self.waitlist[i] is not None):
@@ -156,16 +158,18 @@ class WavReader:
         # start = time.perf_counter_ns()
         output_data = []
 
-        for i in range(0, len(self.timer.release_list)):
+        for i in range(0, len(self.sound_files)):
             if i == 0:
                 self.loop.audio_cursor += self.blocksize
-            block: np.ndarray = self.timer.release_list[i].read(self.blocksize)
+            # block: np.ndarray = self.timer.release_list[i].read(self.blocksize)
+            block: np.ndarray = self.sound_files[i].read(self.blocksize)
             if not block.any():
                 # No more blocks to read, reset cursor to the beginning
-                self.timer.release_list[i].seek(0)
+                # self.timer.release_list[i].seek(0)
+                self.sound_files[i].seek(0)
                 if i == 0:
                     self.loop.audio_cursor = 0
             output_data.append(block)
-            self.timer.dec_waitlist()
+            # self.timer.dec_waitlist()
         # print(f'WavReader.read_to_list: {time.perf_counter_ns() - start}')
         return output_data

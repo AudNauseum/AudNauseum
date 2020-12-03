@@ -5,6 +5,7 @@ from .complex_encoder import ComplexEncoder
 from .fx_settings import FxSettings
 from .track import Track
 from audnauseum.metronome.metronome import Metronome
+from audnauseum.constants import BLOCK_SIZE
 
 
 class Loop(object):
@@ -16,7 +17,7 @@ class Loop(object):
     _tracks: List[Track]
     _audio_cursor: int
 
-    def __init__(self, file_path=None, tracks=None, met=None, fx=None,
+    def __init__(self, file_path=None, tracks=None, met=None, fx=None, tempo=None, beats=1
                  audio_cursor=0):
         self._file_path = file_path
         if tracks is None:
@@ -32,6 +33,11 @@ class Loop(object):
         else:
             self._fx = FxSettings()
         # Sets the audio cursor to point at the beginning of the loop
+        self._tempo = tempo
+        self._beats = beats
+        self.length = tempo * beats * 60 * 44100
+        self.blocksize = BLOCK_SIZE
+        self.ticks = self.length/self.blocksize
         self._audio_cursor = audio_cursor
 
     def to_dict(self):

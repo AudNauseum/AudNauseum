@@ -14,8 +14,10 @@ class Track(object):
     _ms_length: float
     _bpm: float
     _fx: FxSettings
+    starting_tick: int
+    is_released: bool
 
-    def __init__(self, file_name, beats=None, fx=None):
+    def __init__(self, file_name, starting_tick=0, beats=None, fx=None):
         file = sf.SoundFile(file_name)
         self._samples = len(file)
         self._samplerate = file.samplerate
@@ -30,6 +32,12 @@ class Track(object):
             self._fx = fx
         else:
             self._fx = FxSettings()
+
+        self.starting_tick = starting_tick
+        if(starting_tick > 0):
+            self.is_released = False
+        else:
+            self.is_released = True
 
     def to_dict(self):
         data = {}
@@ -102,3 +110,9 @@ class Track(object):
     @classmethod
     def from_json(cls, data: dict):
         return cls(**data)
+
+    def release():
+        self.is_released = True
+
+    def unrelease():
+        self.is_released = False
