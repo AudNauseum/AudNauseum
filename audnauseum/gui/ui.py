@@ -18,7 +18,6 @@ def connect_all_inputs(ui, looper: Looper):
     connect_track_control_buttons(ui, looper)
     connect_fx_buttons(ui, looper)
     connect_metronome_buttons(ui, looper)
-    connect_volume(ui, looper)
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
@@ -61,8 +60,14 @@ def connect_transport_control_buttons(ui, looper: Looper):
     Add listeners to each button in transport controls group
     """
     ui.pushButton_record.clicked.connect(looper.record)
+    ui.pushButton_record.clicked.connect(
+        lambda: update_track_list(ui, looper))
     ui.pushButton_play.clicked.connect(looper.play)
+    ui.pushButton_play.clicked.connect(
+        lambda: update_track_list(ui, looper))
     ui.pushButton_stop.clicked.connect(looper.stop)
+    ui.pushButton_stop.clicked.connect(
+        lambda: update_track_list(ui, looper))
 
     ui.pushButton_record.clicked.connect(
         lambda: transport_status(ui, looper, 'record'))
@@ -84,10 +89,18 @@ def connect_fx_buttons(ui, looper: Looper):
     """EFFECTS (FX)
     Add listeners to each button in effects control group
     """
-    ui.pushButton_pan_beats.clicked.connect(lambda: whichbtn(ui, 'pan'))
-    ui.pushButton_pitch.clicked.connect(lambda: whichbtn(ui, 'pitch'))
-    ui.pushButton_slip.clicked.connect(lambda: whichbtn(ui, 'slip'))
-    ui.pushButton_reverse.clicked.connect(lambda: whichbtn(ui, 'reverse'))
+    ui.pushButton_reverse.clicked.connect(
+        lambda: whichbtn(ui, looper, 'reverse'))
+    ui.trackPan.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackPan'))
+    ui.loopPan.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'loopPan'))
+    ui.trackSlip.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackSlip'))
+    ui.trackVolume.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'trackVolume'))
+    ui.loopVolume.valueChanged.connect(
+        lambda: slider_value(ui, looper, 'loopVolume'))
 
 
 def connect_metronome_buttons(ui, looper: Looper):
@@ -95,14 +108,7 @@ def connect_metronome_buttons(ui, looper: Looper):
     Add listener to toggle metronome on or off
     """
     ui.pushButton_metro_on_off.clicked.connect(
-        lambda: whichbtn('metro_toggle'))
-
-
-def connect_volume(ui, looper: Looper):
-    """VOLUME
-    Add listener for volume control
-    """
-    ui.volumeSlider.valueChanged.connect(lambda: dial_value(ui))
+        lambda: whichbtn(ui, looper, 'metro_toggle'))
 
 
 def initialize_lcd_display(ui, looper: Looper):
@@ -125,13 +131,45 @@ def connect_save_loop(ui, looper: Looper):
     ui.pushButton_save_file.clicked.connect(lambda: save_loop(ui, looper))
 
 
-def whichbtn(ui, _str):
-    print("clicked button is", _str)
+def whichbtn(ui, looper: Looper, _str):
+
+    # print("clicked button is", _str)
+
+    if _str == 'reverse':
+        # TODO need function in looper to set reverse
+        print('reversed')
+    elif _str == 'metro_toggle':
+        # TODO need function to turn on metronome
+        print('metronome toggled')
+        # TODO toggle metronome active status
 
 
-def dial_value(ui):
-    getValue = ui.volumeSlider.value()
-    print("volume value is", str(getValue))
+def slider_value(ui, looper: Looper, _str):
+
+    getValue = -1
+
+    if _str == 'trackPan':
+        getValue = ui.trackPan.value()
+        # TODO need to send track with value
+        # looper.set_pan(getValue)
+    elif _str == 'loopPan':
+        getValue = ui.loopPan.value()
+        looper.set_pan(getValue)
+    elif _str == 'trackSlip':
+        getValue = ui.trackSlip.value()
+        # TODO need function in looper to send value
+    elif _str == 'loopSlip':
+        getValue = ui.loopSlip.value()
+        # TODO need function in looper to send value
+    elif _str == 'trackVolume':
+        getValue = ui.trackVolume.value()
+        # TODO need to send track with value
+        # looper.set_volume(getValue)
+    elif _str == 'loopVolume':
+        getValue = ui.loopVolume.value()
+        looper.set_volume(getValue)
+
+    print(f"{_str} value is", str(getValue))
 
 
 def countdown(ui):
@@ -202,14 +240,17 @@ def add_track(ui, looper: Looper) -> bool:
 
 def rem_track(ui, looper: Looper) -> bool:
 
-    if not looper.state == LooperStates.IDLE:
+    if looper.state == LooperStates.LOADED:
         track = get_track(ui)
         rel_path = get_rel_path(track.text())
         looper.remove_track(rel_path)
         return True
-
-    show_popup(ui)
-    return False
+    elif looper.state == LooperStates.IDLE:
+        show_popup(ui, 'Nothing to remove')
+        return False
+    else:
+        show_popup(ui, 'Must be stopped')
+        return False
 
 
 def get_rel_path(abs_path) -> str:
@@ -222,10 +263,10 @@ def get_rel_path(abs_path) -> str:
 # Modified from example provided in PyQt5 video:  https://www.youtube.com/watch?v=GkgMTyiLtWk
 
 
-def show_popup(ui):
+def show_popup(ui, message):
     msg = QMessageBox()
     msg.setWindowTitle("Error")
-    msg.setText("A loop must be loaded.")
+    msg.setText(message)
 
     msg.exec_()
 

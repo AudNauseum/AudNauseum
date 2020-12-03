@@ -2,12 +2,11 @@ import soundfile as sf
 import numpy as np
 
 from typing import List
+
 import math
-import queue
-import time
 
 from audnauseum.data_models.loop import Loop
-from audnauseum.constants import BLOCK_SIZE, READER_QUEUE_SIZE
+from audnauseum.constants import BLOCK_SIZE
 
 MAX_CHANNELS = 2
 
@@ -52,7 +51,7 @@ class ReleaseTimer():
 
     def generate_waitlist(self):
         '''create an empty list of len(master_timer)'''
-        waitlist = [None] * self.master_timer
+        # waitlist = [None] * self.master_timer
         for i in range(0, len(self.loop.tracks)):
             wait_index = self.loop.tracks[i].fx.slip / self.blocksize
             if(wait_index == 0):
@@ -94,12 +93,11 @@ class WavReader:
     Ride the wav's, bro"""
 
     loop: Loop
-    output_queue: queue.Queue
     blocksize: int
     sound_files: List[sf.SoundFile]
     timer = ReleaseTimer
 
-    def __init__(self, loop: Loop, blocksize=BLOCK_SIZE, queue_size=READER_QUEUE_SIZE) -> None:
+    def __init__(self, loop: Loop, blocksize=BLOCK_SIZE) -> None:
         """Initialize the WavReader
 
         The WavReader requires a reference to the current Loop.
@@ -107,19 +105,43 @@ class WavReader:
         A new instance of WavReader is required each time a Loop is set.
         """
         self.loop = loop
-        self.output_queue = queue.Queue(queue_size)
         self.blocksize = blocksize
         self.sound_files = None
         self.timer = ReleaseTimer(self.loop, self.blocksize)
 
-    # def open_files(self, cursor: int = 0) -> None:
-    #     """Opens WAV files into SoundFile objects
-    #     Opens file handles and reads headers into memory
-    #     """
-    #     self.sound_files = [sf.SoundFile(track.file_name)
-    #                         for track in self.loop.tracks]
-    #     for file in self.sound_files:
-    #         file.seek(cursor)
+    def open_files(self, cursor: int = 0) -> None:
+        """Opens WAV files into SoundFile objects
+
+        Opens file handles and reads headers into memory
+        based on the current loop
+        """
+        self.sound_files = [sf.SoundFile(track.file_name)
+                            for track in self.loop.tracks]
+        for file in self.sound_files:
+            file.seek(cursor)
+
+    def open_file(self, file_path: str):
+        """Opens a single WAV file into the currently SoundFile objects
+
+        Meant to call while the Looper is actively playing,
+        this function can add a new track during playback.
+        """
+        file = sf.SoundFile(file_path)
+        self.sound_files.append(file)
+
+    def close_file(self, file_path):
+        """Closes an open file handle when a track is removed during playback
+
+        Called to stop the reading of a track file when the track is
+        removed using the UI. File handles are kept open for performance
+        and not checked on every read, so this signal closes the necessary
+        file.
+        """
+        for index, file in enumerate(self.sound_files):
+            if file.name == file_path:
+                file.close()
+                del self.sound_files[index]
+                break
 
     def read_to_list(self):
         """Reads multiple SoundFile objects to a list of numpy blocks

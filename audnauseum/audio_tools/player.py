@@ -44,7 +44,8 @@ class Player:
     def stop(self):
         self.playing = False
         self.stream.close()
-        self.input_queue.task_done()
+        if not self.input_queue.empty():
+            self.input_queue.task_done()
         self.empty_queue()
 
     def empty_queue(self):
