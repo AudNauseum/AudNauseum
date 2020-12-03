@@ -68,8 +68,6 @@ class Recorder(object):
         # create directory if not present
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        now = None
-        filename = None
         now = datetime.now()
         filename = self.directory + '/track_' + \
             now.strftime('%Y%m%d%H%M%S') + '.wav'
