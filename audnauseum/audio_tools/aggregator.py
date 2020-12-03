@@ -1,4 +1,4 @@
-from audnauseum.audio_tools.wav_reader import WavReader, ReleaseTimer
+from audnauseum.audio_tools.wav_reader import WavReader
 from threading import Thread
 from queue import Queue
 import time
@@ -27,34 +27,48 @@ class Aggregator:
         self.player_queue = player_queue
         self.reader = reader
         self.thread = None
+        self.is_running = False
 
     def start(self):
-        self.reader.timer.reset_timer()
+        """Starts the processing of the Aggregator
+
+        Opens file handles and creates a thread to activate
+        the Reader and process the read audio data.
+        """
+        self.reader.open_files()
         self.is_running = True
-        self.thread = Thread(target=self.run)
+        self.thread = Thread(target=self.process_audio)
         self.thread.start()
 
     def stop(self):
+        """Stops the processing of the Aggregator
+
+        Ends the processing, closes the thread, and closes
+        open file handles.
+        """
         self.is_running = False
         self.thread.join()
         self.close_all_file_handles()
 
-    def run(self):
+    def process_audio(self):
+        """Continuously process audio data
+
+        The aggregator will start to continuously process audio data
+        from the Reader and pass to the Player until stop() is called.
+        """
         while self.is_running:
             input_data = self.reader.read_to_list()
             output_data = self.aggregate_list(input_data)
-            self.player_queue.put(output_data)
-            # input_3d_data = self.reader.read_to_3d_array()
-            # output_3d_data = self.aggregate_3d_array(input_3d_data)
-            # self.player_queue.put(output_3d_data)
+            if output_data.any():
+                self.player_queue.put(output_data)
 
-    def add_track(self, file_path):
+    def add_track(self, file_path: str, slip: int = 0):
         """Opens a file when a track is added during playback
 
         Calls the reader to open the specified track that was
         added.
         """
-        self.reader.open_file(file_path)
+        self.reader.add_track(file_path, slip=slip)
 
     def remove_track(self, file_path):
         """Closes an open file handle when a track is removed during playback
@@ -72,9 +86,7 @@ class Aggregator:
 
         Called on cleanup to ensure open resources get closed
         """
-        for file in self.reader.sound_files:
-            file.close()
-        self.reader.sound_files = []
+        self.reader.close_all_files()
 
     def aggregate_list(self, numpy_arrays) -> np.ndarray:
         """Aggregates a list of numpy arrays into a single numpy array
