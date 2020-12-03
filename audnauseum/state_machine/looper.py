@@ -6,6 +6,7 @@ from audnauseum.data_models.complex_decoder import ComplexDecoder
 from audnauseum.audio_tools.recorder import Recorder
 from audnauseum.audio_tools.aggregator import Aggregator
 from transitions import Machine
+import sounddevice as sd
 import enum
 import json
 
@@ -96,6 +97,8 @@ class Looper:
         # playing state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING,
          'dest': LooperStates.PLAYING_AND_RECORDING},
+        {'trigger': 'add_track', 'source': LooperStates.PLAYING,
+         'dest': '=', 'after': 'load_track'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
             'dest': LooperStates.PAUSED},
         {'trigger': 'stop', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
@@ -110,6 +113,8 @@ class Looper:
         # playing_and_recording state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
+        {'trigger': 'add_track', 'source': LooperStates.PLAYING_AND_RECORDING,
+         'dest': '=', 'after': 'load_track'},
         {'trigger': 'play', 'source': LooperStates.PLAYING_AND_RECORDING,
             'dest': LooperStates.PLAYING, 'before': 'stop_recording'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING_AND_RECORDING,
@@ -148,6 +153,9 @@ class Looper:
                                transitions=Looper.transitions,
                                ignore_invalid_triggers=True,
                                after_state_change=self.echo_state_change)
+
+        self.set_default_channels()
+
         if loop is None:
             self.loop = Loop()
         else:
@@ -163,6 +171,33 @@ class Looper:
         default_path = './resources/json/default.json'
         self.write_loop(default_path)
         self.load_loop(default_path)
+
+    def set_default_channels(self):
+        """Detects and sets the default sounddevice channels
+        Checks the Host APIs of the user's OS audio settings for the
+        default input and output devices.
+        Sets the sounddevice default channels tuple to the capabilities
+        of the input and output devices.
+        On Linux, the default input/output devices are often a "virtual"
+        device using ALSA and can have 32, 64, or even 128 channels. This
+        value is clamped to 2 for what the physical device can support.
+        """
+        for api in sd.query_hostapis():
+            input_device = api.get('default_input_device', None)
+            output_device = api.get('default_output_device', None)
+            if input_device and input_device >= 0 and \
+                    output_device and output_device >= 0:
+                devices = sd.query_devices()
+                input_channels = devices[input_device]['max_input_channels']
+                if input_channels > 2:
+                    # Clamp value in case of virtual device
+                    input_channels = 2
+                output_channels = devices[output_device]['max_output_channels']
+                if output_channels > 2:
+                    # Clamp value in case of virtual device
+                    output_channels = 2
+                sd.default.channels = input_channels, output_channels
+                break
 
     def load_loop(self, file_path: str):
         try:
@@ -200,13 +235,16 @@ class Looper:
         print(f'{self.state=}')
 
     def load_track(self, file_path: str):
-        '''
-        Load a Track into the looper.
-        '''
+        """Load a Track into the looper.
+
+        If the Looper is currently playing, opens the respective file
+        handle to start playback for that track.
+        """
         # TODO beats are currently hard-coded to be 20 for all new Tracks
         try:
             x = Track(file_path, beats=20)
             self.loop.append(x)
+            self.aggregator.add_track(file_path)
             return True
         except Exception as e:
             print(
@@ -214,11 +252,14 @@ class Looper:
             return False
 
     def unload_track(self, file_path: str):
-        '''
-        Remove a Track from the looper.
-        '''
+        """Remove a Track from the looper.
+
+        If the Looper is currently playing, closes the respective
+        file handle to cease playback for that track.
+        """
         try:
             self.loop.remove(file_path)
+            self.aggregator.remove_track(file_path)
             return True
         except Exception as e:
             print(
@@ -237,6 +278,7 @@ class Looper:
         """Stops the current playing output"""
         self.aggregator.stop()
         self.player.stop()
+        print('stopped playing')
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
