@@ -532,4 +532,4 @@ class Looper:
         print('Goodbye!')
 
     def get_track_list(self):
-        return self.loop.tracks
+        return self.loop._tracks
