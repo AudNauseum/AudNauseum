@@ -256,6 +256,7 @@ def add_track(ui, looper: Looper) -> bool:
         rel_path = get_rel_path(file_path)
         looper.add_track(rel_path)
         update_track_list(ui, looper)
+        set_track_vol_slider(ui, looper)
         return True
 
         # The user canceled the add track dialog
