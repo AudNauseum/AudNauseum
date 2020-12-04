@@ -23,51 +23,13 @@ def connect_all_inputs(ui, looper: Looper):
     connect_save_loop(ui, looper)
 
 
-# Dictionary for creating unique item names in for-loop modified from source code:
-# https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
-
-def update_track_list(ui, looper: Looper):
-
-    track_list = looper.loop.tracks
-    item = {}
-
-    ui.listWidget.clear()
-
-    index = 1
-    for track in track_list:
-        name = track.file_name.split('/')[-1]
-
-        item["item{0}".format(index)] = QListWidgetItem(name)
-        ui.listWidget.addItem(item["item{0}".format(index)])
-        item["item{0}".format(index)].setText(name)
-        index += 1
-
-    # Select row 0 by default to prevent a NoneType error
-    ui.listWidget.setCurrentRow(0)
-    ui.listWidget.setFocus()
-
-
-def get_track_name(ui):
-
-    row = ui.listWidget.currentRow()
-    track = ui.listWidget.takeItem(row)
-
-    return track
-
-
 def connect_transport_control_buttons(ui, looper: Looper):
     """TRANSPORT CONTROLS
     Add listeners to each button in transport controls group
     """
     ui.pushButton_record.clicked.connect(looper.record)
-    ui.pushButton_record.clicked.connect(
-        lambda: update_track_list(ui, looper))
     ui.pushButton_play.clicked.connect(looper.play)
-    ui.pushButton_play.clicked.connect(
-        lambda: update_track_list(ui, looper))
     ui.pushButton_stop.clicked.connect(looper.stop)
-    ui.pushButton_stop.clicked.connect(
-        lambda: update_track_list(ui, looper))
 
     ui.pushButton_record.clicked.connect(
         lambda: transport_status(ui, looper, 'record'))
@@ -101,6 +63,9 @@ def connect_fx_buttons(ui, looper: Looper):
         lambda: slider_value(ui, looper, 'trackVolume'))
     ui.loopVolume.valueChanged.connect(
         lambda: slider_value(ui, looper, 'loopVolume'))
+
+    ui.listWidget.currentRowChanged.connect(
+        lambda: set_track_vol_slider(ui, looper))
 
 
 def connect_metronome_buttons(ui, looper: Looper):
@@ -146,30 +111,32 @@ def whichbtn(ui, looper: Looper, _str):
 
 def slider_value(ui, looper: Looper, _str):
 
-    getValue = -1
+    sValue = -1
+    # update_track_list(ui, looper)
 
     if _str == 'trackPan':
-        getValue = ui.trackPan.value()
+        sValue = ui.trackPan.value()
         # TODO need to send track with value
-        # looper.set_pan(getValue)
+        # looper.set_pan(sValue)
     elif _str == 'loopPan':
-        getValue = ui.loopPan.value()
-        looper.set_pan(getValue)
+        sValue = ui.loopPan.value()
+        looper.set_pan(sValue)
     elif _str == 'trackSlip':
-        getValue = ui.trackSlip.value()
+        sValue = ui.trackSlip.value()
         # TODO need function in looper to send value
     elif _str == 'loopSlip':
-        getValue = ui.loopSlip.value()
+        sValue = ui.loopSlip.value()
         # TODO need function in looper to send value
     elif _str == 'trackVolume':
-        getValue = ui.trackVolume.value()
+        sValue = ui.trackVolume.value()
         track = get_track(ui, looper)
-        # looper.track_set_volume(track, getValue)
+        looper.track_set_volume(track, sValue)
     elif _str == 'loopVolume':
-        getValue = ui.loopVolume.value()
-        looper.set_volume(getValue)
+        sValue = ui.loopVolume.value()
+        looper.set_volume(sValue)
 
-    print(f"{_str} value is", str(getValue))
+    # update_track_list(ui, looper)
+    print(f"{_str} value is", str(sValue))
 
 
 def countdown(ui):
@@ -206,9 +173,8 @@ def load_loop(ui, looper: Looper) -> bool:
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)
-        update_track_list(ui, looper)
         set_loop_vol_slider(ui, looper)
-        #set_track_vol_slider(ui, looper)
+        init_track_list(ui, looper)
         return True
     # The user canceled the file dialog
     return False
@@ -230,14 +196,46 @@ def set_loop_vol_slider(ui, looper: Looper):
 
 def set_track_vol_slider(ui, looper: Looper):
 
-    track = get_track(ui, looper)
-    value = looper.track_get_volume(track)
-    ui.trackVolume.setValue(value)
+    print("changed")
+
+    if ui.listWidget.count() > 0:
+        track = get_track(ui, looper)
+        value = looper.track_get_volume(track)
+        ui.trackVolume.setValue(value)
+
+
+def init_track_list(ui, looper: Looper):
+
+    track_list = looper.get_track_list()
+
+    ui.listWidget.clear()
+
+    for track in track_list:
+        name = track.file_name.split('/')[-1]
+        ui.listWidget.addItem(name)
+
+
+def add_track_to_listview(ui, looper: Looper, file_name):
+
+    ui.listWidget.addItem(file_name)
+
+
+def rem_track_from_listview(ui, looper: Looper, row_num):
+
+    ui.listWidget.takeItem(row_num)
+
+
+def get_track_name(ui) -> str:
+
+    # row = ui.listWidget.currentRow()
+    track_name = ui.listWidget.currentItem().text()
+
+    return track_name
 
 
 def get_track(ui, looper: Looper):
     file_name = get_track_name(ui)
-    rel_path = get_rel_path(file_name.text())
+    rel_path = get_rel_path(file_name)
     track = looper.loop.get_track(rel_path)
     return track
 
@@ -252,7 +250,8 @@ def add_track(ui, looper: Looper) -> bool:
     if file_path:
         rel_path = get_rel_path(file_path)
         looper.add_track(rel_path)
-        update_track_list(ui, looper)
+        file_name = get_file_name(rel_path)
+        add_track_to_listview(ui, looper, file_name)
         return True
 
         # The user canceled the add track dialog
@@ -263,7 +262,9 @@ def rem_track(ui, looper: Looper) -> bool:
 
     if looper.state == LooperStates.LOADED:
         file_name = get_track_name(ui)
-        rel_path = get_rel_path(file_name.text())
+        rel_path = get_rel_path(file_name)
+        row = ui.listWidget.currentRow()
+        rem_track_from_listview(ui, looper, row)
         looper.remove_track(rel_path)
         return True
     elif looper.state == LooperStates.IDLE:
@@ -276,12 +277,19 @@ def rem_track(ui, looper: Looper) -> bool:
 
 def get_rel_path(abs_path) -> str:
     # create the relative path for track location
-    file_name = abs_path.split('/')[-1]
+    file_name = get_file_name(abs_path)
     rel_path = "resources/recordings/" + file_name
 
     return rel_path
 
+
 # Modified from example provided in PyQt5 video:  https://www.youtube.com/watch?v=GkgMTyiLtWk
+
+def get_file_name(abs_path) -> str:
+
+    file_name = abs_path.split('/')[-1]
+
+    return file_name
 
 
 def show_popup(ui, message):
@@ -299,7 +307,7 @@ def transport_status(ui, looper: Looper, status):
         if status == 'record':
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
@@ -318,7 +326,7 @@ def transport_status(ui, looper: Looper, status):
         elif status == 'play':
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
@@ -338,7 +346,7 @@ def transport_status(ui, looper: Looper, status):
         else:
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
