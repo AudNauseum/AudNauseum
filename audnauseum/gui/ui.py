@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 
 
-from PyQt5.QtWidgets import QFileDialog, QMessageBox, QListWidget, QListWidgetItem
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QListWidgetItem
 from PyQt5 import uic
 
 
@@ -172,6 +172,21 @@ def save_file_dialog(ui) -> str:
 
 
 def load_loop(ui, looper: Looper) -> bool:
+    """Opens a file dialog for a user to load a new Loop
+
+    Checks for a compatible state and open a file dialog to
+    pick a new loop. Load in the new Tracks if a Loop is chosen
+    or return False to indicate the state & loop did not change.
+    """
+
+    # For simplicity, only allow loading a new loop from IDLE or LOADED
+    # This could be made more flexible in the future - make sure to close
+    # all resources (streams, files) if loading a loop during play or record
+    if looper.state not in [LooperStates.IDLE, LooperStates.LOADED]:
+        msg = 'Please stop the current loop before loading a new loop.'
+        show_popup(ui, msg)
+        return False
+
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)

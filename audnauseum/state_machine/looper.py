@@ -61,6 +61,8 @@ class Looper:
          'dest': 'None'},  # Not a transition
 
         # loaded state transitions
+        {'trigger': 'load', 'source': LooperStates.LOADED,
+         'dest': '=', 'conditions': ['load_loop']},
         {'trigger': 'record', 'source': LooperStates.LOADED,
          'dest': LooperStates.PLAYING_AND_RECORDING, 'after': 'start_playing_and_recording'},
         {'trigger': 'add_track', 'source': LooperStates.LOADED,
@@ -175,6 +177,7 @@ class Looper:
 
     def set_default_channels(self):
         """Detects and sets the default sounddevice channels
+
         Checks the Host APIs of the user's OS audio settings for the
         default input and output devices.
         Sets the sounddevice default channels tuple to the capabilities
@@ -201,6 +204,11 @@ class Looper:
                 break
 
     def load_loop(self, file_path: str):
+        """Reads a JSON file using the deserializer into a Loop object
+
+        Swaps to a new Loop object given a path to a JSON file. Updates
+        mutable references in object variables.
+        """
         try:
             json_data = self.read_json(file_path)
             self.loop = json.loads(json_data, cls=ComplexDecoder)
@@ -209,8 +217,8 @@ class Looper:
             self.player.loop = self.loop
             return True
         except Exception as e:
-            print(
-                f'Exception while loading data from {file_path}\nMessage: {e}')
+            print(f'Exception while loading data from {file_path}')
+            print(f'Message: {e}')
             return False
 
     def write_loop(self, file_path: str):
