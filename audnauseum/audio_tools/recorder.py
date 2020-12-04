@@ -40,6 +40,7 @@ class Recorder:
         self.recording = self.previously_recording = False
         self.audio_queue = queue.Queue()
         self.current_file = None
+        self.last_file = None
         self.loop = loop
         if self.loop is None:
             self.loop = Loop()
@@ -106,6 +107,8 @@ class Recorder:
         self.recording = False
         self.wait_for_thread()
         track = Track(self.current_file, slip=self.starting_sample)
+        self.last_file = self.current_file
+        self.current_file = None
         self.starting_sample = 0
         return track
 
@@ -131,3 +134,9 @@ class Recorder:
                 if data is None:
                     break
                 file.write(data)
+
+    def get_current_file(self):
+        return self.current_file
+
+    def get_last_file(self):
+        return self.last_file
