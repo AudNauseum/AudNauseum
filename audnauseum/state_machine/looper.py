@@ -9,7 +9,6 @@ from transitions import Machine
 import sounddevice as sd
 import enum
 import json
-import math
 
 
 class LooperStates(enum.Enum):
@@ -397,8 +396,8 @@ class Looper:
         gui_range = [0., 100.]
         loop_scale = (loop_range[1] - loop_range[0])
         gui_scale = (gui_range[1] - gui_range[0])
-        gui_volume = math.round((((loop_scale - loop_scale_volume) *
-                                  gui_scale) / loop_scale) + gui_range[0])
+        gui_volume = round((((loop_scale_volume) *
+                             gui_scale) / loop_scale) + gui_range[0])
         return gui_volume
 
     def convert_gui_to_volume(self, gui_scale_volume: int) -> float:
@@ -406,7 +405,7 @@ class Looper:
         gui_range = [0., 100.]
         loop_scale = (loop_range[1] - loop_range[0])
         gui_scale = (gui_range[1] - gui_range[0])
-        loop_volume = (((gui_scale - gui_scale_volume) *
+        loop_volume = (((gui_scale_volume) *
                         loop_scale) / gui_scale) + loop_range[0]
         return loop_volume
 
@@ -415,10 +414,10 @@ class Looper:
 
     def set_volume(self, gui_volume: int):
         loop_vol = self.convert_gui_to_volume(gui_volume)
-        if(loop_vol in range(0, 1)):
+        if 0 <= loop_vol <= 1:
             self.loop.fx.volume = loop_vol
             return True
-        return false
+        return False
 
     def volume_inc(self):
         if self.loop.fx.volume <= 0.99:
@@ -457,7 +456,7 @@ class Looper:
     def track_set_volume(self, track: Track, gui_volume: int):
         track_volume = self.convert_gui_to_volume(gui_volume)
         if track_volume in range(0, 1):
-            track.fx.volume = volume
+            track.fx.volume = track_volume
             return True
         return False
 
