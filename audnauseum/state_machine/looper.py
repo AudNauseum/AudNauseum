@@ -409,7 +409,7 @@ class Looper:
         return gui_volume
 
     def convert_gui_to_volume(self, gui_scale_volume: int) -> float:
-        loop_range = [0.0001, 1]
+        loop_range = [0.0001, 1.0001]
         gui_range = [0., 100.]
         loop_scale = (loop_range[1] - loop_range[0])
         gui_scale = (gui_range[1] - gui_range[0])
@@ -463,7 +463,7 @@ class Looper:
 
     def track_set_volume(self, track: Track, gui_volume: int):
         track_volume = self.convert_gui_to_volume(gui_volume)
-        if 0 <= track_volume <= 1:
+        if 0. <= track_volume <= 1.0001:
             track.fx.volume = track_volume
             return True
         return False
