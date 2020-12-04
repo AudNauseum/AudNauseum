@@ -96,7 +96,7 @@ class Looper:
 
         # playing state transitions
         {'trigger': 'record', 'source': LooperStates.PLAYING,
-         'dest': LooperStates.PLAYING_AND_RECORDING},
+         'dest': LooperStates.PLAYING_AND_RECORDING, 'after': 'start_recording'},
         {'trigger': 'add_track', 'source': LooperStates.PLAYING,
          'dest': '=', 'after': 'load_track'},
         {'trigger': 'pause', 'source': LooperStates.PLAYING, 'before': 'stop_playing',
@@ -162,8 +162,9 @@ class Looper:
             self.loop = loop
 
         self.recorder = Recorder(loop=self.loop)
-        self.player = Player()
-        self.reader = WavReader(loop=self.loop)
+        self.player = Player(loop=self.loop)
+        self.reader = WavReader(
+            loop=self.loop, last_block_notifier_queue=self.player.last_block_notifier_queue)
         self.aggregator = Aggregator(
             loop=self.loop, player_queue=self.player.input_queue, reader=self.reader)
 
@@ -183,10 +184,9 @@ class Looper:
         value is clamped to 2 for what the physical device can support.
         """
         for api in sd.query_hostapis():
-            input_device = api.get('default_input_device', None)
-            output_device = api.get('default_output_device', None)
-            if input_device and input_device >= 0 and \
-                    output_device and output_device >= 0:
+            input_device = api.get('default_input_device')
+            output_device = api.get('default_output_device')
+            if input_device >= 0 and output_device >= 0:
                 devices = sd.query_devices()
                 input_channels = devices[input_device]['max_input_channels']
                 if input_channels > 2:
@@ -244,7 +244,8 @@ class Looper:
         try:
             x = Track(file_path, beats=20)
             self.loop.append(x)
-            self.aggregator.add_track(file_path)
+            if self.state == LooperStates.PLAYING or self.state == LooperStates.PLAYING_AND_RECORDING:
+                self.aggregator.add_track(file_path)
             return True
         except Exception as e:
             print(
@@ -276,19 +277,23 @@ class Looper:
 
     def stop_playing(self, *args):
         """Stops the current playing output"""
-        self.aggregator.stop()
-        self.player.stop()
-        print('stopped playing')
+        self.loop.audio_cursor = 0
+        if self.aggregator and self.aggregator.is_running:
+            self.aggregator.stop()
+        if self.player and self.player.playing:
+            self.player.stop()
 
     def start_recording(self, *args):
         '''Writes input audio stream to disk and sends stream to output'''
-        self.recorder = None
         self.recorder = Recorder(loop=self.loop)
         self.recorder.on_rec()
 
     def stop_recording(self, *args):
         '''Creates a Track from recording, appends to loop'''
-        self.recorder.on_stop()
+        if self.recorder and self.recorder.recording:
+            track = self.recorder.on_stop()
+            self.loop.append(track)
+            self.aggregator.add_track(track.file_name, slip=track.fx.slip)
 
     def start_playing_and_recording(self, *args):
         self.start_recording()
@@ -486,10 +491,6 @@ class Looper:
         object as an argument but is unneeded."""
         print('Shutting down AudNauseum...')
 
-        if self.player.playing:
-            self.player.stop()
-
-        if self.recorder and self.recorder.recording:
-            self.recorder.on_stop()
+        self.stop_playing_and_recording()
 
         print('Goodbye!')

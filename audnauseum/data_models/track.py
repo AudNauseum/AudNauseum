@@ -15,7 +15,7 @@ class Track(object):
     _bpm: float
     _fx: FxSettings
 
-    def __init__(self, file_name, beats=None, fx=None):
+    def __init__(self, file_name, beats=None, fx=None, slip=None):
         file = sf.SoundFile(file_name)
         self._samples = len(file)
         self._samplerate = file.samplerate
@@ -30,6 +30,8 @@ class Track(object):
             self._fx = fx
         else:
             self._fx = FxSettings()
+        if slip:
+            self._fx.slip = slip
 
     def to_dict(self):
         data = {}

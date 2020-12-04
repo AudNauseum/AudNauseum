@@ -15,16 +15,33 @@ import numpy as np
 assert np
 
 
-class Recorder(object):
-    def __init__(self, directory=None, loop=None):
+class Recorder:
+    """Handles recording from input devices to file
+
+    Opens input streams to record incoming audio to a file
+    and generates a Track from that data to add to the current
+    Loop.
+    """
+    directory: str
+    stream: sd.InputStream
+    recording: bool
+    previously_recording: bool
+    audio_queue: queue.Queue
+    current_file: str
+    loop: Loop
+    input_overflows: int
+    thread: threading.Thread
+    starting_sample: int
+
+    def __init__(self, loop=None):
         self.directory = 'resources/recordings'
         self.stream = None
         self.create_stream()
         self.recording = self.previously_recording = False
-        self.audio_q = queue.Queue()
-        self.current_file: str
+        self.audio_queue = queue.Queue()
+        self.current_file = None
         self.loop = loop
-        if(self.loop is None):
+        if self.loop is None:
             self.loop = Loop()
         self.input_overflows = 0
         self.thread = None
@@ -43,26 +60,25 @@ class Recorder(object):
 
     def after(self, ms, func=None, *args):
         sleep(ms/1000)
-        if(func):
-            return(func(*args))
-        else:
-            return
+        if func:
+            return func(*args)
 
-    def audio_callback(self, indata, frames, time, status):
+    def audio_callback(self, indata: np.ndarray, frames, time, status: sd.CallbackFlags):
         """This is called (from a separate thread) for each audio block."""
         if status.input_overflow:
             self.input_overflows += 1
         if self.recording:
-            self.audio_q.put(indata.copy())
+            self.audio_queue.put(indata.copy())
             self.previously_recording = True
         else:
             if self.previously_recording:
-                self.audio_q.put(None)
+                self.audio_queue.put(None)
                 self.previously_recording = False
 
     def on_rec(self):
-        current_block = self.loop.audio_cursor
-        print(f'Audio Cursor at Record press: {current_block}')
+        """Begins recording audio from the input stream"""
+        self.starting_sample = self.loop.audio_cursor
+
         self.recording = True
         # create directory if not present
         if not os.path.exists(self.directory):
@@ -72,7 +88,7 @@ class Recorder(object):
             now.strftime('%Y%m%d%H%M%S') + '.wav'
         self.current_file = filename
 
-        if self.audio_q.qsize() != 0:
+        if self.audio_queue.qsize() != 0:
             print('WARNING: Queue not empty!')
         self.thread = threading.Thread(
             target=self.file_writing_thread,
@@ -81,20 +97,17 @@ class Recorder(object):
                 mode='w',
                 samplerate=int(self.stream.samplerate),
                 channels=self.stream.channels,
-                q=self.audio_q,
+                queue=self.audio_queue,
             ),
         )
         self.thread.start()
 
-        # NB: File creation might fail!  For brevity, we don't check for this.
-
-    def on_stop(self, *args):
+    def on_stop(self, *args) -> Track:
         self.recording = False
         self.wait_for_thread()
-        t = Track(self.current_file)
-        print(t.file_name)
-        self.loop.tracks.append(t)
-        print(f'There are: {len(self.loop.tracks)} tracks in loop.')
+        track = Track(self.current_file, slip=self.starting_sample)
+        self.starting_sample = 0
+        return track
 
     def wait_for_thread(self):
         self.after(0.1, self._wait_for_thread)
@@ -110,11 +123,11 @@ class Recorder(object):
             self.on_stop()
         self.destroy()
 
-    def file_writing_thread(self, *, q, **soundfile_args):
+    def file_writing_thread(self, *, queue, **soundfile_args):
         """Write data from queue to file until *None* is received."""
-        with sf.SoundFile(**soundfile_args) as f:
+        with sf.SoundFile(**soundfile_args) as file:
             while True:
-                data = q.get()
+                data = queue.get()
                 if data is None:
                     break
-                f.write(data)
+                file.write(data)

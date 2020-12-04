@@ -1,4 +1,5 @@
 from audnauseum.constants import BLOCK_SIZE, PLAYER_QUEUE_SIZE, SAMPLE_RATE
+from audnauseum.data_models.loop import Loop
 
 import sys
 import queue
@@ -9,23 +10,31 @@ assert np
 
 
 class Player:
+    """Handles streaming of audio blocks from a queue to output devices
+
+
+    """
     stream: sd.OutputStream
     playing: bool
     previously_playing: bool
     input_queue: queue.Queue
+    last_block_notifier_queue: queue.Queue
     blocksize: int
     queue_size: int
     samplerate: int
-    channels: int
+    loop: Loop
 
-    def __init__(self, blocksize=BLOCK_SIZE, queue_size=PLAYER_QUEUE_SIZE, samplerate=SAMPLE_RATE):
+    def __init__(self, loop: Loop = None, blocksize=BLOCK_SIZE, queue_size=PLAYER_QUEUE_SIZE, samplerate=SAMPLE_RATE):
         self.stream = None
         self.playing = False
         self.previously_playing = False
         self.blocksize = blocksize
         self.samplerate = samplerate
         self.input_queue = queue.Queue(maxsize=queue_size)
-        self.channels = 2
+        self.last_block_notifier_queue = queue.Queue(maxsize=queue_size)
+        self.loop = loop
+        if self.loop is None:
+            self.loop = Loop()
 
     def play(self):
         """Starts the streaming playback from input data to audio output.
@@ -34,30 +43,41 @@ class Player:
         self.create_stream()
 
     def create_stream(self):
+        """Creates the output stream for audio processing
+        """
         if self.stream is not None:
             self.stream.close()
         self.stream = sd.OutputStream(
-            blocksize=self.blocksize, dtype='float32', channels=self.channels,
+            blocksize=self.blocksize, dtype='float32',
             samplerate=self.samplerate, callback=self.callback)
         self.stream.start()
 
     def stop(self):
+        """Stops the playback of audio
+
+        Closes the output stream and empties the audio queue
+        """
         self.playing = False
         self.stream.close()
-        if not self.input_queue.empty():
+        if self.input_queue.qsize() != 0:
             self.input_queue.task_done()
-        self.empty_queue()
+        self.empty_queue(self.input_queue)
+        if self.last_block_notifier_queue.qsize() != 0:
+            self.last_block_notifier_queue.task_done()
+        self.empty_queue(self.last_block_notifier_queue)
 
-    def empty_queue(self):
+    def empty_queue(self, queue_to_empty: queue.Queue):
         """Empty the queue of audio blocks
 
         Python doesn't seem to actually provide a method to empty a queue
         """
-        while not self.input_queue.empty():
+        while queue_to_empty.qsize() != 0:
             try:
-                self.input_queue.get_nowait()
-                self.input_queue.task_done()
+                queue_to_empty.get_nowait()
+                queue_to_empty.task_done()
             except queue.Empty:
+                pass
+            except ValueError:
                 pass
 
     def callback(self, outdata, frames: int, time, status: sd.CallbackFlags):
@@ -74,6 +94,7 @@ class Player:
         assert not status
         try:
             data: np.ndarray = self.input_queue.get_nowait()
+            is_last_block: bool = self.last_block_notifier_queue.get_nowait()
         except queue.Empty as e:
             print('Queue is empty: increase queue_size?', file=sys.stderr)
             raise sd.CallbackAbort from e
@@ -82,7 +103,13 @@ class Player:
         if len(data) < len(outdata):
             # zero-byte the remainder of the output in case there's noise
             outdata = np.empty(
-                (self.blocksize, self.channels), dtype='float32')
+                (self.blocksize, sd.default.channels[1]), dtype='float32')
             outdata[:len(data)] = data
         else:
             outdata[:] = data
+
+        # Update the audio played cursor
+        if is_last_block:
+            self.loop.audio_cursor = 0
+        else:
+            self.loop.audio_cursor += frames
