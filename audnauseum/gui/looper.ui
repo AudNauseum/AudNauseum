@@ -412,6 +412,12 @@ QPushButton:pressed {
      <bold>false</bold>
     </font>
    </property>
+   <property name="cursor">
+    <cursorShape>ForbiddenCursor</cursorShape>
+   </property>
+   <property name="toolTip">
+    <string>Coming soon!</string>
+   </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
     color: #333;
@@ -444,7 +450,7 @@ QPushButton:pressed {
     <string>REV</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="Line" name="line_2">
