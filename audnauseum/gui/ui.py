@@ -114,30 +114,32 @@ def whichbtn(ui, looper: Looper, _str):
 
 def slider_value(ui, looper: Looper, _str):
 
-    getValue = -1
+    sValue = -1
+    update_track_list(ui, looper)
 
     if _str == 'trackPan':
-        getValue = ui.trackPan.value()
+        sValue = ui.trackPan.value()
         # TODO need to send track with value
-        # looper.set_pan(getValue)
+        # looper.set_pan(sValue)
     elif _str == 'loopPan':
-        getValue = ui.loopPan.value()
-        looper.set_pan(getValue)
+        sValue = ui.loopPan.value()
+        looper.set_pan(sValue)
     elif _str == 'trackSlip':
-        getValue = ui.trackSlip.value()
+        sValue = ui.trackSlip.value()
         # TODO need function in looper to send value
     elif _str == 'loopSlip':
-        getValue = ui.loopSlip.value()
+        sValue = ui.loopSlip.value()
         # TODO need function in looper to send value
     elif _str == 'trackVolume':
-        getValue = ui.trackVolume.value()
+        sValue = ui.trackVolume.value()
         track = get_track(ui, looper)
-        # looper.track_set_volume(track, getValue)
+        looper.track_set_volume(track, sValue)
     elif _str == 'loopVolume':
-        getValue = ui.loopVolume.value()
-        looper.set_volume(getValue)
+        sValue = ui.loopVolume.value()
+        looper.set_volume(sValue)
 
-    print(f"{_str} value is", str(getValue))
+    update_track_list(ui, looper)
+    print(f"{_str} value is", str(sValue))
 
 
 def countdown(ui):
@@ -176,7 +178,8 @@ def load_loop(ui, looper: Looper) -> bool:
         looper.load(file_path)
         update_track_list(ui, looper)
         set_loop_vol_slider(ui, looper)
-        #set_track_vol_slider(ui, looper)
+        set_track_vol_slider(ui, looper)
+        update_track_list(ui, looper)
         return True
     # The user canceled the file dialog
     return False
