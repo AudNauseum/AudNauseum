@@ -110,9 +110,12 @@ class Aggregator:
                 padding = np.zeros((max_blocksize - block.shape[0], 2))
                 block = np.append(block, padding, 0)
             # Add element-wise in-place to reuse allocated memory
+
             np.add(output_data, block, output_data)
 
+        # Mix the sounds together
         np.multiply(output_data, 1. / math.sqrt(num_tracks), output_data)
+        # Loop Volume processing
         np.multiply(output_data, self.loop.fx.volume, output_data)
         # print(f'Aggregator.aggregate_list: {time.perf_counter_ns() - start}')
         # print(time.perf_counter_ns() - start)
