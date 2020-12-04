@@ -113,6 +113,11 @@ class Loop(object):
                 return True
         return False
 
+    def get_track(self, file_path):
+        for track in self._tracks:
+            if track.file_name == file_path:
+                return track
+
     def pop(self, index):
         if index < len(self.tracks):
             self.tracks.pop(index)
@@ -120,19 +125,19 @@ class Loop(object):
         else:
             return False
 
-    @property
+    @ property
     def met(self):
         return self._met
 
-    @property
+    @ property
     def fx(self):
         return self._fx
 
-    @property
+    @ property
     def audio_cursor(self):
         return self._audio_cursor
 
-    @audio_cursor.setter
+    @ audio_cursor.setter
     def audio_cursor(self, sample):
         try:
             self._audio_cursor = int(sample)

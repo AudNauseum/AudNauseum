@@ -47,7 +47,7 @@ def update_track_list(ui, looper: Looper):
     ui.listWidget.setFocus()
 
 
-def get_track(ui):
+def get_track_name(ui):
 
     row = ui.listWidget.currentRow()
     track = ui.listWidget.takeItem(row)
@@ -163,8 +163,8 @@ def slider_value(ui, looper: Looper, _str):
         # TODO need function in looper to send value
     elif _str == 'trackVolume':
         getValue = ui.trackVolume.value()
-        # TODO need to send track with value
-        # looper.set_volume(getValue)
+        # track = get_track(ui, looper)
+        # set_track_volume(ui, track)
     elif _str == 'loopVolume':
         getValue = ui.loopVolume.value()
         looper.set_volume(getValue)
@@ -207,6 +207,8 @@ def load_loop(ui, looper: Looper) -> bool:
     if file_path:
         looper.load(file_path)
         update_track_list(ui, looper)
+        set_loop_vol_slider(ui, looper)
+        set_track_vol_slider(ui, looper)
         return True
     # The user canceled the file dialog
     return False
@@ -219,6 +221,33 @@ def save_loop(ui, looper: Looper) -> bool:
         return True
     # The user canceled the save dialog
     return False
+
+
+def set_loop_vol_slider(ui, looper: Looper):
+    value = looper.loop.fx.volume
+    value *= 11
+    ui.loopVolume.setValue(value)
+
+
+def set_track_vol_slider(ui, looper: Looper):
+
+    track = get_track(ui, looper)
+    value = track.fx.volume
+    value *= 11
+    ui.trackVolume.setValue(value)
+
+
+def get_track(ui, looper: Looper):
+    file_name = get_track_name(ui)
+    rel_path = get_rel_path(file_name.text())
+    track = looper.loop.get_track(rel_path)
+    return track
+
+
+# def set_track_volume(ui, track):
+
+#     value = ui.trackVolume.value()
+#     track.fx.volume(value)
 
 
 def add_track(ui, looper: Looper) -> bool:
@@ -241,8 +270,8 @@ def add_track(ui, looper: Looper) -> bool:
 def rem_track(ui, looper: Looper) -> bool:
 
     if looper.state == LooperStates.LOADED:
-        track = get_track(ui)
-        rel_path = get_rel_path(track.text())
+        file_name = get_track_name(ui)
+        rel_path = get_rel_path(file_name.text())
         looper.remove_track(rel_path)
         return True
     elif looper.state == LooperStates.IDLE:
