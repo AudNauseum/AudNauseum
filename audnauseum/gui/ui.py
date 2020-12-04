@@ -102,11 +102,13 @@ def whichbtn(ui, looper: Looper, _str):
 
     if _str == 'reverse':
         # TODO need function in looper to set reverse
-        print('reversed')
+        # print('reversed')
+        pass
     elif _str == 'metro_toggle':
         # TODO need function to turn on metronome
-        print('metronome toggled')
+        # print('metronome toggled')
         # TODO toggle metronome active status
+        pass
 
 
 def slider_value(ui, looper: Looper, _str):
