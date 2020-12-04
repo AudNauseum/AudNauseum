@@ -186,7 +186,8 @@ class Looper:
         for api in sd.query_hostapis():
             input_device = api.get('default_input_device')
             output_device = api.get('default_output_device')
-            if input_device >= 0 and output_device >= 0:
+            if input_device is not None and input_device >= 0 \
+                    and output_device is not None and output_device >= 0:
                 devices = sd.query_devices()
                 input_channels = devices[input_device]['max_input_channels']
                 if input_channels > 2:
@@ -389,9 +390,32 @@ class Looper:
         return True
 
     # Loop Effects controls
-    def set_volume(self, volume):
-        if volume >= 0 and volume <= 1:
-            self.loop.fx.volume = volume
+
+    def convert_volume_to_gui(self, loop_scale_volume: float) -> int:
+        loop_range = [0., 1]
+        gui_range = [0., 100.]
+        loop_scale = (loop_range[1] - loop_range[0])
+        gui_scale = (gui_range[1] - gui_range[0])
+        gui_volume = round((((loop_scale_volume) *
+                             gui_scale) / loop_scale) + gui_range[0])
+        return gui_volume
+
+    def convert_gui_to_volume(self, gui_scale_volume: int) -> float:
+        loop_range = [0., 1]
+        gui_range = [0., 100.]
+        loop_scale = (loop_range[1] - loop_range[0])
+        gui_scale = (gui_range[1] - gui_range[0])
+        loop_volume = (((gui_scale_volume) *
+                        loop_scale) / gui_scale) + loop_range[0]
+        return loop_volume
+
+    def get_volume(self):
+        return self.convert_volume_to_gui(self.loop.fx.volume)
+
+    def set_volume(self, gui_volume: int):
+        loop_vol = self.convert_gui_to_volume(gui_volume)
+        if 0 <= loop_vol <= 1:
+            self.loop.fx.volume = loop_vol
             return True
         return False
 
@@ -426,9 +450,13 @@ class Looper:
         return False
 
     # Track controls
-    def track_set_volume(self, track, volume):
-        if volume >= 0 and volume <= 1:
-            track.fx.volume = volume
+    def track_get_volume(self, track: Track):
+        return self.convert_volume_to_gui(track.fx.volume)
+
+    def track_set_volume(self, track: Track, gui_volume: int):
+        track_volume = self.convert_gui_to_volume(gui_volume)
+        if track_volume in range(0, 1):
+            track.fx.volume = track_volume
             return True
         return False
 

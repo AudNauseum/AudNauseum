@@ -1081,7 +1081,7 @@ QPushButton:pressed {
     </rect>
    </property>
    <property name="maximum">
-    <number>11</number>
+    <number>100</number>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
@@ -1090,7 +1090,7 @@ QPushButton:pressed {
     <enum>QSlider::TicksBelow</enum>
    </property>
    <property name="tickInterval">
-    <number>1</number>
+    <number>10</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_23">
@@ -1146,7 +1146,7 @@ QPushButton:pressed {
     </rect>
    </property>
    <property name="maximum">
-    <number>11</number>
+    <number>100</number>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
@@ -1155,7 +1155,7 @@ QPushButton:pressed {
     <enum>QSlider::TicksBelow</enum>
    </property>
    <property name="tickInterval">
-    <number>1</number>
+    <number>10</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_25">
