@@ -70,6 +70,9 @@ def connect_fx_buttons(ui, looper: Looper):
     ui.loopVolume.valueChanged.connect(
         lambda: slider_value(ui, looper, 'loopVolume'))
 
+    ui.listWidget.currentRowChanged.connect(
+        lambda: print('row change'))
+
 
 def connect_metronome_buttons(ui, looper: Looper):
     """METRONOME
@@ -205,29 +208,36 @@ def set_track_vol_slider(ui, looper: Looper):
     value = looper.track_get_volume(track)
     ui.trackVolume.setValue(value)
 
+
 # Dictionary for creating unique item names in for-loop modified from source code:
 # https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
 
-
 def update_track_list(ui, looper: Looper):
 
-    track_list = looper.loop.tracks
-    item = {}
+    track_list = looper.get_track_list()
 
     ui.listWidget.clear()
 
-    index = 1
     for track in track_list:
         name = track.file_name.split('/')[-1]
-
-        item["item{0}".format(index)] = QListWidgetItem(name)
-        ui.listWidget.addItem(item["item{0}".format(index)])
-        item["item{0}".format(index)].setText(name)
-        index += 1
+        ui.listWidget.addItem(name)
 
     # Select row 0 by default to prevent a NoneType error
     ui.listWidget.setCurrentRow(0)
     ui.listWidget.setFocus()
+
+    # current_items = set()
+
+    # for index in range(ui.listWidget.count()):
+    #     current_items.add(ui.listWidget.item(index))
+
+    # items_add = track_list - current_items
+
+    # for item in items_add:
+
+    #     current_items.remove(item)
+
+    # item_remove = current_items - track_list
 
 
 def get_track_name(ui):
@@ -303,7 +313,7 @@ def transport_status(ui, looper: Looper, status):
         if status == 'record':
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
@@ -322,7 +332,7 @@ def transport_status(ui, looper: Looper, status):
         elif status == 'play':
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
@@ -342,7 +352,7 @@ def transport_status(ui, looper: Looper, status):
         else:
 
             ui.status_indicator.setStyleSheet("""
-                                                QPushButton 
+                                                QPushButton
                                                 {
                                                     color: #333;
                                                     border: 2px solid #555;
