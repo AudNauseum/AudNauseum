@@ -23,38 +23,6 @@ def connect_all_inputs(ui, looper: Looper):
     connect_save_loop(ui, looper)
 
 
-# Dictionary for creating unique item names in for-loop modified from source code:
-# https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
-
-def update_track_list(ui, looper: Looper):
-
-    track_list = looper.loop.tracks
-    item = {}
-
-    ui.listWidget.clear()
-
-    index = 1
-    for track in track_list:
-        name = track.file_name.split('/')[-1]
-
-        item["item{0}".format(index)] = QListWidgetItem(name)
-        ui.listWidget.addItem(item["item{0}".format(index)])
-        item["item{0}".format(index)].setText(name)
-        index += 1
-
-    # Select row 0 by default to prevent a NoneType error
-    ui.listWidget.setCurrentRow(0)
-    ui.listWidget.setFocus()
-
-
-def get_track_name(ui):
-
-    row = ui.listWidget.currentRow()
-    track = ui.listWidget.takeItem(row)
-
-    return track
-
-
 def connect_transport_control_buttons(ui, looper: Looper):
     """TRANSPORT CONTROLS
     Add listeners to each button in transport controls group
@@ -233,6 +201,38 @@ def set_track_vol_slider(ui, looper: Looper):
     track = get_track(ui, looper)
     value = looper.track_get_volume(track)
     ui.trackVolume.setValue(value)
+
+# Dictionary for creating unique item names in for-loop modified from source code:
+# https://stackoverflow.com/questions/6181935/how-do-you-create-different-variable-names-while-in-a-loop
+
+
+def update_track_list(ui, looper: Looper):
+
+    track_list = looper.loop.tracks
+    item = {}
+
+    ui.listWidget.clear()
+
+    index = 1
+    for track in track_list:
+        name = track.file_name.split('/')[-1]
+
+        item["item{0}".format(index)] = QListWidgetItem(name)
+        ui.listWidget.addItem(item["item{0}".format(index)])
+        item["item{0}".format(index)].setText(name)
+        index += 1
+
+    # Select row 0 by default to prevent a NoneType error
+    ui.listWidget.setCurrentRow(0)
+    ui.listWidget.setFocus()
+
+
+def get_track_name(ui):
+
+    row = ui.listWidget.currentRow()
+    track = ui.listWidget.takeItem(row)
+
+    return track
 
 
 def get_track(ui, looper: Looper):
