@@ -105,7 +105,7 @@ class Aggregator:
         # Pre-allocates (malloc) the array under the hood
         output_data: np.ndarray = np.zeros((max_blocksize, 2))
 
-        for i in range(0, numpy_arrays):
+        for i in range(0, len(numpy_arrays)):
             if numpy_arrays[i].shape[0] != max_blocksize:
                 padding = np.zeros(
                     (max_blocksize - numpy_arrays[i].shape[0], 2))
