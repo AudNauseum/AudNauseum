@@ -455,8 +455,6 @@ class Looper:
 
     def track_set_volume(self, track: Track, gui_volume: int):
         track_volume = self.convert_gui_to_volume(gui_volume)
-        print(track_volume)
-        print(track)
         if 0 <= track_volume <= 1:
             track.fx.volume = track_volume
             return True
@@ -524,3 +522,6 @@ class Looper:
         self.stop_playing_and_recording()
 
         print('Goodbye!')
+
+    def get_track_list(self):
+        return self.loop.tracks
