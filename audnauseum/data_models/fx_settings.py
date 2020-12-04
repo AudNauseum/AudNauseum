@@ -45,7 +45,8 @@ class FxSettings:
 
     @volume.setter
     def volume(self, value):
-        self._volume = value
+        if(0. <= value <= 1.):
+            self._volume = value
 
     @property
     def pan(self):
