@@ -222,6 +222,11 @@ def save_loop(ui, looper: Looper) -> bool:
 
 
 def add_track(ui, looper: Looper) -> bool:
+    """Open a file dialog for a user to add a Track to a Loop
+
+    Uses a file dialog to allow a user to make a selection of
+    the Track they would like to add to the Loop.
+    """
 
     options = QFileDialog.Options()
     options |= QFileDialog.DontUseNativeDialog
@@ -230,6 +235,15 @@ def add_track(ui, looper: Looper) -> bool:
 
     if file_path:
         rel_path = get_rel_path(file_path)
+
+        # Check if the same file already exists as a Track in the Loop
+        # For simplicity with other functionality, we don't allow duplicate tracks
+        if any(track.file_name == rel_path for track in looper.loop.tracks):
+            file_name = rel_path.split('/')[-1]
+            msg = f'Track {file_name} already exists in this loop.'
+            show_popup(ui, msg)
+            return False
+
         looper.add_track(rel_path)
         update_track_list(ui, looper)
         return True
