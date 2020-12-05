@@ -114,7 +114,6 @@ def whichbtn(ui, looper: Looper, _str):
 def slider_value(ui, looper: Looper, _str):
 
     sValue = -1
-    # update_track_list(ui, looper)
 
     if _str == 'trackPan':
         sValue = ui.trackPan.value()
@@ -130,14 +129,17 @@ def slider_value(ui, looper: Looper, _str):
         sValue = ui.loopSlip.value()
         # TODO need function in looper to send value
     elif _str == 'trackVolume':
-        sValue = ui.trackVolume.value()
-        track = get_track(ui, looper)
-        looper.track_set_volume(track, sValue)
+
+        if ui.listWidget.count() > 0:
+            ui.trackVolume.setEnabled(True)
+            sValue = ui.trackVolume.value()
+            track = get_track(ui, looper)
+            looper.track_set_volume(track, sValue)
+
     elif _str == 'loopVolume':
         sValue = ui.loopVolume.value()
         looper.set_volume(sValue)
 
-    # update_track_list(ui, looper)
     print(f"{_str} value is", str(sValue))
 
 
@@ -192,6 +194,7 @@ def load_loop(ui, looper: Looper) -> bool:
         looper.load(file_path)
         set_loop_vol_slider(ui, looper)
         init_track_list(ui, looper)
+        print("here")
         return True
     # The user canceled the file dialog
     return False
@@ -213,9 +216,8 @@ def set_loop_vol_slider(ui, looper: Looper):
 
 def set_track_vol_slider(ui, looper: Looper):
 
-    print("changed")
+    if ui.listWidget.count() > 1:
 
-    if ui.listWidget.count() > 0:
         track = get_track(ui, looper)
         value = looper.track_get_volume(track)
         ui.trackVolume.setValue(value)
@@ -235,6 +237,8 @@ def init_track_list(ui, looper: Looper):
 def add_track_to_listview(ui, looper: Looper, file_name):
 
     ui.listWidget.addItem(file_name)
+    ui.trackVolume.setEnabled(True)
+    ui.listWidget.setCurrentRow(0)
 
 
 def rem_track_from_listview(ui, looper: Looper, row_num):
@@ -294,9 +298,13 @@ def rem_track(ui, looper: Looper) -> bool:
     if looper.state == LooperStates.LOADED:
         file_name = get_track_name(ui)
         rel_path = get_rel_path(file_name)
+        looper.remove_track(rel_path)
         row = ui.listWidget.currentRow()
         rem_track_from_listview(ui, looper, row)
-        looper.remove_track(rel_path)
+
+        if ui.listWidget.count() < 1:
+            ui.trackVolume.setEnabled(False)
+
         return True
     elif looper.state == LooperStates.IDLE:
         show_popup(ui, 'Nothing to remove')
@@ -331,11 +339,20 @@ def show_popup(ui, message):
     msg.exec_()
 
 
+def add_recording_to_track_list(ui, looper: Looper):
+
+    file_name = get_file_name(looper.recorder.get_current_file())
+    add_track_to_listview(ui, looper, file_name)
+
+
 def transport_status(ui, looper: Looper, status):
 
     if not looper.state == LooperStates.IDLE:
 
         if status == 'record':
+
+            add_recording_to_track_list(ui, looper)
+            ui.trackVolume.setEnabled(False)
 
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
@@ -355,7 +372,7 @@ def transport_status(ui, looper: Looper, status):
             ui.status_indicator.setText("REC")
 
         elif status == 'play':
-
+            ui.trackVolume.setEnabled(True)
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
                                                 {
@@ -375,7 +392,7 @@ def transport_status(ui, looper: Looper, status):
             ui.status_indicator.setText("PLAY")
 
         else:
-
+            ui.trackVolume.setEnabled(True)
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
                                                 {

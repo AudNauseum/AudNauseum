@@ -533,3 +533,7 @@ class Looper:
 
     def get_track_list(self):
         return self.loop.tracks
+
+    def get_last_recording(self):
+        return self.loop.tracks[-1].file_path
+
