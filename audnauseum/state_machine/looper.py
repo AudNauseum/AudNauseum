@@ -302,6 +302,7 @@ class Looper:
         if self.recorder and self.recorder.recording:
             track = self.recorder.on_stop()
             self.loop.append(track)
+            self.aggregator.add_track(track.file_name, slip=track.fx.slip)
 
     def start_playing_and_recording(self, *args):
         self.start_recording()
