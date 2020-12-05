@@ -352,6 +352,7 @@ def transport_status(ui, looper: Looper, status):
         if status == 'record':
 
             add_recording_to_track_list(ui, looper)
+            ui.trackVolume.setEnabled(False)
 
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
@@ -371,7 +372,7 @@ def transport_status(ui, looper: Looper, status):
             ui.status_indicator.setText("REC")
 
         elif status == 'play':
-
+            ui.trackVolume.setEnabled(True)
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
                                                 {
@@ -391,7 +392,7 @@ def transport_status(ui, looper: Looper, status):
             ui.status_indicator.setText("PLAY")
 
         else:
-
+            ui.trackVolume.setEnabled(True)
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
                                                 {
