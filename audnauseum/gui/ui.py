@@ -21,6 +21,7 @@ def connect_all_inputs(ui, looper: Looper):
     initialize_lcd_display(ui, looper)
     connect_load_loop(ui, looper)
     connect_save_loop(ui, looper)
+    set_loop_vol_slider(ui, looper)
 
 
 def connect_transport_control_buttons(ui, looper: Looper):
