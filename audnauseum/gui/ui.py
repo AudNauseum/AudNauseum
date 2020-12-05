@@ -190,12 +190,12 @@ def load_loop(ui, looper: Looper) -> bool:
         show_popup(ui, msg)
         return False
 
+    clear_listview(ui, looper)
     file_path = open_file_dialog(ui)
     if file_path:
         looper.load(file_path)
         set_loop_vol_slider(ui, looper)
         init_track_list(ui, looper)
-        print("here")
         return True
     # The user canceled the file dialog
     return False
@@ -231,8 +231,8 @@ def init_track_list(ui, looper: Looper):
     ui.listWidget.clear()
 
     for track in track_list:
-        name = track.file_name.split('/')[-1]
-        ui.listWidget.addItem(name)
+        file_name = track.file_name.split('/')[-1]
+        ui.listWidget.addItem(file_name)
 
 
 def add_track_to_listview(ui, looper: Looper, file_name):
@@ -245,6 +245,13 @@ def add_track_to_listview(ui, looper: Looper, file_name):
 def rem_track_from_listview(ui, looper: Looper, row_num):
 
     ui.listWidget.takeItem(row_num)
+
+
+def clear_listview(ui, looper: Looper):
+
+    while ui.listWidget.count() > 0:
+
+        ui.listWidget.takeItem(ui.listWidget.count() - 1)
 
 
 def get_track_name(ui) -> str:
