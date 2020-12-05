@@ -148,8 +148,9 @@ class WavReader:
 
         self.read_cursor += self.blocksize
 
-        # Restart the loop if all tracks are finished reading
-        if all(file.finished_reading for file in self.files):
+        # Restart the loop if the 'master' track is finished
+        # Currently hard-coded to always be the first track
+        if self.files[0].finished_reading:
             self.restart_loop()
             is_last_block = True
 
