@@ -194,6 +194,7 @@ def load_loop(ui, looper: Looper) -> bool:
         looper.load(file_path)
         set_loop_vol_slider(ui, looper)
         init_track_list(ui, looper)
+        print("here")
         return True
     # The user canceled the file dialog
     return False
@@ -236,6 +237,8 @@ def init_track_list(ui, looper: Looper):
 def add_track_to_listview(ui, looper: Looper, file_name):
 
     ui.listWidget.addItem(file_name)
+    ui.trackVolume.setEnabled(True)
+    ui.listWidget.setCurrentRow(0)
 
 
 def rem_track_from_listview(ui, looper: Looper, row_num):
@@ -298,10 +301,13 @@ def rem_track(ui, looper: Looper) -> bool:
         looper.remove_track(rel_path)
         row = ui.listWidget.currentRow()
         rem_track_from_listview(ui, looper, row)
+
+        if ui.listWidget.count() < 1:
+            ui.trackVolume.setEnabled(False)
+
         return True
     elif looper.state == LooperStates.IDLE:
         show_popup(ui, 'Nothing to remove')
-        ui.trackVolume.setEnabled(False)
         return False
     else:
         show_popup(ui, 'Must be stopped')
@@ -333,11 +339,19 @@ def show_popup(ui, message):
     msg.exec_()
 
 
+def add_recording_to_track_list(ui, looper: Looper):
+
+    file_name = get_file_name(looper.recorder.get_current_file())
+    add_track_to_listview(ui, looper, file_name)
+
+
 def transport_status(ui, looper: Looper, status):
 
     if not looper.state == LooperStates.IDLE:
 
         if status == 'record':
+
+            add_recording_to_track_list(ui, looper)
 
             ui.status_indicator.setStyleSheet("""
                                                 QPushButton
