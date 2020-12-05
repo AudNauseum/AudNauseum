@@ -131,7 +131,7 @@ class WavReader:
 
         for file in self.files:
             # Check if the file is still slipping
-            if file.is_slipping and self.read_cursor > file.slip:
+            if file.is_slipping and self.read_cursor >= file.slip:
                 file.is_slipping = False
 
             if file.finished_reading or file.is_slipping:

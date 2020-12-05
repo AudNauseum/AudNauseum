@@ -1,6 +1,7 @@
 # TODO-create file with python's open() and include buffering argument
 # TODO-check for file-creation fail (Line 92)
 
+from audnauseum.constants import BLOCK_SIZE
 from datetime import datetime
 from time import sleep
 import soundfile as sf
@@ -35,6 +36,7 @@ class Recorder:
 
     def __init__(self, loop=None):
         self.directory = 'resources/recordings'
+        self.starting_sample = 0
         self.stream = None
         self.create_stream()
         self.recording = self.previously_recording = False
@@ -78,7 +80,9 @@ class Recorder:
 
     def on_rec(self):
         """Begins recording audio from the input stream"""
-        self.starting_sample = self.loop.audio_cursor
+        self.starting_sample = self.loop.audio_cursor - BLOCK_SIZE
+        if self.starting_sample < 0:
+            self.starting_sample = 0
 
         self.recording = True
         # create directory if not present
