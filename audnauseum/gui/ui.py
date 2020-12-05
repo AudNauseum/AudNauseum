@@ -190,9 +190,9 @@ def load_loop(ui, looper: Looper) -> bool:
         show_popup(ui, msg)
         return False
 
-    clear_listview(ui, looper)
     file_path = open_file_dialog(ui)
     if file_path:
+        clear_listview(ui, looper)
         looper.load(file_path)
         set_loop_vol_slider(ui, looper)
         init_track_list(ui, looper)
