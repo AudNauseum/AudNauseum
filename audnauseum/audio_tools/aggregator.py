@@ -105,12 +105,18 @@ class Aggregator:
         # Pre-allocates (malloc) the array under the hood
         output_data: np.ndarray = np.zeros((max_blocksize, 2))
 
-        for block in numpy_arrays:
-            if block.shape[0] != max_blocksize:
-                padding = np.zeros((max_blocksize - block.shape[0], 2))
-                block = np.append(block, padding, 0)
+        for i in range(0, len(numpy_arrays)):
+            track = self.loop.tracks[i]
+            if numpy_arrays[i].shape[0] != max_blocksize:
+                padding = np.zeros(
+                    (max_blocksize - numpy_arrays[i].shape[0], 2))
+                numpy_arrays[i] = np.append(
+                    numpy_arrays[i], padding, 0)
+            # volume adjustment
+            np.multiply(
+                numpy_arrays[i], track.fx.volume, numpy_arrays[i])
             # Add element-wise in-place to reuse allocated memory
-            np.add(output_data, block, output_data)
+            np.add(output_data, numpy_arrays[i], output_data)
 
         np.multiply(output_data, 1. / math.sqrt(num_tracks), output_data)
         np.multiply(output_data, self.loop.fx.volume, output_data)
