@@ -8,6 +8,8 @@ Upon program startup a default audio loop is loaded with zero tracks and the use
 
 Click add track and you can navigate to your recorded track and add that to the loop. Press play to hear your beats or vocal track played back. Now is where you can get creative, while playing back the vocals you can press record to record a new beat over top of your previously recorded track. Have a cool sound byte or music track you want to overlay a beat or vocal recording? Import .wav files to the “resources/recordings folder” and you can add those tracks to the looper too!
 
+![AudNauseum GUI](docs/audnauseum.png)
+
 ## How do I run AudNauseum?
 
 Please see the [documentation file](docs/Running_From_Source.md) on running the AudNauseum application from source code.
